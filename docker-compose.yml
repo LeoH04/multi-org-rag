@@ -1,0 +1,450 @@
+# ============================================================
+# Multi-Org Open WebUI — Docker Compose (Local Prototype)
+# ============================================================
+#
+# Services:
+#   - postgres       : Shared PostgreSQL + pgvector (one DB per org)
+#   - tika           : Shared document extraction
+#   - openwebui-gwf             : Open WebUI instance for GWF Wohnungsgenossenschaft eG
+#   - openwebui-inge-graessle   : Open WebUI instance for Inge Graessle MdB Buero
+#   - openwebui-ask             : Open WebUI instance for Albert-Schweitzer-Kinderdorf
+#   - n8n-gwf                   : n8n instance for GWF Wohnungsgenossenschaft eG workflows
+#   - n8n-inge-graessle         : n8n instance for Inge Graessle MdB Buero workflows
+#   - n8n-ask                   : n8n instance for Albert-Schweitzer-Kinderdorf workflows
+#   - nginx          : Reverse proxy + landing page
+#
+# Usage:
+#   1. Edit .env — set passwords, domain, and OLLAMA_BASE_URL
+#   2. docker compose up -d
+#   3. Ensure Ollama is running locally and a model is pulled (e.g. ollama run llama3.1)
+#   4. Open http://localhost (or http://yourdomain.com)
+#
+#   With DOMAIN=localhost (default):
+#     Landing page : http://localhost
+#     GWF          : http://${ORG1_SUBDOMAIN}.localhost
+#     Inge Graessle: http://${ORG2_SUBDOMAIN}.localhost
+#     ASK          : http://${ORG3_SUBDOMAIN}.localhost
+#
+#   With DOMAIN=yourdomain.com:
+#     Landing page : http://yourdomain.com
+#     GWF          : http://${ORG1_SUBDOMAIN}.yourdomain.com
+#     Inge Graessle: http://${ORG2_SUBDOMAIN}.yourdomain.com
+#     ASK          : http://${ORG3_SUBDOMAIN}.yourdomain.com
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────────
+  # Shared PostgreSQL + pgvector
+  # ──────────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:0.8.2-pg17
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-multi-db.sql:/docker-entrypoint-initdb.d/init-multi-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Shared Apache Tika (document extraction)
+  # ──────────────────────────────────────────────
+  tika:
+    image: apache/tika
+    restart: unless-stopped
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Shared Ollama (LLM + embeddings backend)
+  # ──────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    # Use GPU on hosts with NVIDIA Container Toolkit.
+    # For CPU-only hosts, remove the next line.
+    #gpus: all
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Ollama model preload (one-shot init)
+  # ──────────────────────────────────────────────
+  ollama-init:
+    image: ollama/ollama:latest
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_PRELOAD_MODELS: ${OLLAMA_PRELOAD_MODELS}
+    entrypoint: |
+      sh -c '
+        set -e
+        echo "Waiting for Ollama API..."
+        until ollama list >/dev/null 2>&1; do
+          sleep 2
+        done
+        IFS=","
+        for model in $${OLLAMA_PRELOAD_MODELS}; do
+          model=$$(echo "$${model}" | xargs)
+          [ -z "$${model}" ] && continue
+          echo "Preloading model: $${model}"
+          ollama pull "$${model}"
+        done
+        echo "Model preload complete."
+      '
+    depends_on:
+      ollama:
+        condition: service_started
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # GWF Wohnungsgenossenschaft eG — Open WebUI
+  # ──────────────────────────────────────────────
+  openwebui-gwf:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    restart: unless-stopped
+    # No direct port — accessed via nginx reverse proxy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      # --- Database (separate DB for this org) ---
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_gwf
+      VECTOR_DB: pgvector
+      # PGVECTOR_DB_URL defaults to DATABASE_URL — no need to set separately
+
+      # --- LLM backend (shared Ollama service) ---
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+
+      # --- Document extraction (shared Tika) ---
+      CONTENT_EXTRACTION_ENGINE: tika
+      TIKA_SERVER_URL: http://tika:9998
+
+      # --- Branding ---
+      WEBUI_NAME: "GWF Wohnungs­genossenschaft eG"
+      WEBUI_URL: http://${ORG1_SUBDOMAIN}.${DOMAIN}
+
+      # --- Auth & admin ---
+      WEBUI_SECRET_KEY: ${SECRET_KEY_GWF_STUTTGART}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
+      DEFAULT_LOCALE: de
+      DEFAULT_USER_ROLE: pending
+      ENABLE_API_KEYS: "true"
+
+      # --- Config persistence (set to true only during initial setup) ---
+      RESET_CONFIG_ON_START: "false"
+    volumes:
+      - openwebui_gwf_data:/app/backend/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tika:
+        condition: service_started
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Inge Graessle MdB Buero — Open WebUI
+  # ──────────────────────────────────────────────
+  openwebui-inge-graessle:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    restart: unless-stopped
+    # No direct port — accessed via nginx reverse proxy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      # --- Database (separate DB for this org) ---
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ig_mdb
+      VECTOR_DB: pgvector
+
+      # --- LLM backend (shared Ollama service) ---
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+
+      # --- Document extraction (shared Tika) ---
+      CONTENT_EXTRACTION_ENGINE: tika
+      TIKA_SERVER_URL: http://tika:9998
+
+      # --- Branding ---
+      WEBUI_NAME: "Inge Gräßle MdB Büro"
+      WEBUI_URL: http://${ORG2_SUBDOMAIN}.${DOMAIN}
+
+      # --- Auth & admin ---
+      WEBUI_SECRET_KEY: ${SECRET_KEY_INGE_GRAESSLE_MDB}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
+      DEFAULT_LOCALE: de
+      DEFAULT_USER_ROLE: pending
+      ENABLE_API_KEYS: "true"
+
+      # --- Config persistence (set to true only during initial setup) ---
+      RESET_CONFIG_ON_START: "false"
+    volumes:
+      - openwebui_inge_graessle_data:/app/backend/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tika:
+        condition: service_started
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Albert-Schweitzer-Kinderdorf — Open WebUI
+  # ──────────────────────────────────────────────
+  openwebui-ask:
+    image: ghcr.io/open-webui/open-webui:v0.8.12
+    restart: unless-stopped
+    # No direct port — accessed via nginx reverse proxy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      # --- Database (separate DB for this org) ---
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ask
+      VECTOR_DB: pgvector
+
+      # --- LLM backend (shared Ollama service) ---
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+
+      # --- Document extraction (shared Tika) ---
+      CONTENT_EXTRACTION_ENGINE: tika
+      TIKA_SERVER_URL: http://tika:9998
+
+      # --- Branding ---
+      WEBUI_NAME: "Albert-Schweitzer-Kinderdorf"
+      WEBUI_URL: http://${ORG3_SUBDOMAIN}.${DOMAIN}
+
+      # --- Auth & admin ---
+      WEBUI_SECRET_KEY: ${SECRET_KEY_ALBERT_SCHWEITZER_KINDERDORF}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
+      DEFAULT_LOCALE: de
+      DEFAULT_USER_ROLE: pending
+      ENABLE_API_KEYS: "true"
+
+      # --- Config persistence (set to true only during initial setup) ---
+      RESET_CONFIG_ON_START: "false"
+    volumes:
+      - openwebui_ask_data:/app/backend/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tika:
+        condition: service_started
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # GWF Wohnungsgenossenschaft eG — n8n
+  # ──────────────────────────────────────────────
+  n8n-gwf:
+    image: n8nio/n8n:1.87.2
+    restart: unless-stopped
+    environment:
+      N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_EDITOR_BASE_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
+      N8N_SECURE_COOKIE: false
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG1}
+      TZ: Europe/Berlin
+      GENERIC_TIMEZONE: Europe/Berlin
+    volumes:
+      - n8n_gwf_data:/home/node/.n8n
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Inge Graessle MdB Buero — n8n
+  # ──────────────────────────────────────────────
+  n8n-inge-graessle:
+    image: n8nio/n8n:1.87.2
+    restart: unless-stopped
+    environment:
+      N8N_HOST: ${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_EDITOR_BASE_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}/
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
+      N8N_SECURE_COOKIE: false
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG2}
+      TZ: Europe/Berlin
+      GENERIC_TIMEZONE: Europe/Berlin
+    volumes:
+      - n8n_inge_graessle_data:/home/node/.n8n
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Albert-Schweitzer-Kinderdorf — n8n
+  # ──────────────────────────────────────────────
+  n8n-ask:
+    image: n8nio/n8n:1.87.2
+    restart: unless-stopped
+    environment:
+      N8N_HOST: ${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_EDITOR_BASE_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}/
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
+      N8N_SECURE_COOKIE: false
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG3}
+      TZ: Europe/Berlin
+      GENERIC_TIMEZONE: Europe/Berlin
+    volumes:
+      - n8n_ask_data:/home/node/.n8n
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Nginx — Reverse Proxy + Landing Page
+  # ──────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # Uncomment for HTTPS (after running generate-certs.sh):
+      # - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
+      - ORG2_SUBDOMAIN=${ORG2_SUBDOMAIN}
+      - ORG3_SUBDOMAIN=${ORG3_SUBDOMAIN}
+      - N8N_ORG1_SUBDOMAIN=${N8N_ORG1_SUBDOMAIN}
+      - N8N_ORG2_SUBDOMAIN=${N8N_ORG2_SUBDOMAIN}
+      - N8N_ORG3_SUBDOMAIN=${N8N_ORG3_SUBDOMAIN}
+    volumes:
+      # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      # Landing page
+      - ./landing:/usr/share/nginx/html:ro
+      # SSL certificates (uncomment after running generate-certs.sh):
+      # - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - openwebui-gwf
+      - openwebui-inge-graessle
+      - openwebui-ask
+      - n8n-gwf
+      - n8n-inge-graessle
+      - n8n-ask
+    networks:
+      - backend
+
+  # ──────────────────────────────────────────────
+  # Database Backup (runs pg_dump daily at 2 AM)
+  # ──────────────────────────────────────────────
+  backup:
+    image: pgvector/pgvector:0.8.2-pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - backups:/backups
+    entrypoint: |
+      sh -c '
+        echo "Backup service started. Running daily at 2:00 AM."
+        while true; do
+          # Sleep until 2 AM
+          current_hour=$$(date +%H)
+          current_min=$$(date +%M)
+          if [ "$$current_hour" = "02" ] && [ "$$current_min" = "00" ]; then
+            echo "[$$( date -Iseconds )] Starting backup..."
+            for db in openwebui_gwf openwebui_ig_mdb openwebui_ask; do
+              pg_dump -h postgres -U $${POSTGRES_USER} -d $$db \
+                | gzip > /backups/$${db}_$$(date +%Y%m%d_%H%M%S).sql.gz
+              echo "[$$( date -Iseconds )] Backed up $$db"
+            done
+            # Keep only last 7 days of backups
+            find /backups -name "*.sql.gz" -mtime +7 -delete
+            echo "[$$( date -Iseconds )] Backup complete. Old backups cleaned."
+          fi
+          sleep 60
+        done
+      '
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+# ──────────────────────────────────────────────
+# Volumes
+# ──────────────────────────────────────────────
+volumes:
+  postgres_data:
+  ollama_data:
+  openwebui_gwf_data:
+  openwebui_inge_graessle_data:
+  openwebui_ask_data:
+  n8n_gwf_data:
+  n8n_inge_graessle_data:
+  n8n_ask_data:
+  backups:
+
+# ──────────────────────────────────────────────
+# Network
+# ──────────────────────────────────────────────
+networks:
+  backend:
+    driver: bridge
