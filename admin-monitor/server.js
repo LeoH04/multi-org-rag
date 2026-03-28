@@ -36,10 +36,13 @@ const n8nUser = process.env.N8N_ADMIN_USER;
 const n8nPassword = process.env.N8N_ADMIN_PASSWORD;
 
 function getOrgFromRequest(orgKey) {
-  if (orgKey && orgs[orgKey]) {
-    return { key: orgKey, config: orgs[orgKey] };
+  if (orgKey == null || orgKey === '') {
+    return { key: 'gwf', config: orgs.gwf, invalid: false };
   }
-  return { key: 'gwf', config: orgs.gwf };
+  if (orgs[orgKey]) {
+    return { key: orgKey, config: orgs[orgKey], invalid: false };
+  }
+  return { key: null, config: null, invalid: true };
 }
 
 async function probeUrl(url) {
@@ -51,7 +54,7 @@ async function probeUrl(url) {
     });
     const latencyMs = Date.now() - start;
     return {
-      ok: response.status < 500,
+      ok: response.ok,
       statusCode: response.status,
       latencyMs
     };
@@ -156,6 +159,22 @@ async function fetchN8nMetrics(n8nBaseUrl) {
   let executions24h = null;
   let failedExecutions24h = null;
 
+  const workflowStatusCode = workflowRes ? workflowRes.status : null;
+  const executionStatusCode = executionRes ? executionRes.status : null;
+
+  const errors = [];
+  if (!workflowRes) {
+    errors.push('workflows endpoint unreachable');
+  } else if (!workflowRes.ok) {
+    errors.push('workflows endpoint HTTP ' + workflowRes.status);
+  }
+
+  if (!executionRes) {
+    errors.push('executions endpoint unreachable');
+  } else if (!executionRes.ok) {
+    errors.push('executions endpoint HTTP ' + executionRes.status);
+  }
+
   if (workflowRes && workflowRes.ok) {
     const workflowJson = await workflowRes.json();
     const list = Array.isArray(workflowJson)
@@ -191,7 +210,11 @@ async function fetchN8nMetrics(n8nBaseUrl) {
   return {
     activeWorkflows,
     executions24h,
-    failedExecutions24h
+    failedExecutions24h,
+    metricsAvailable: Boolean(workflowRes?.ok && executionRes?.ok),
+    workflowStatusCode,
+    executionStatusCode,
+    apiError: errors.length > 0 ? errors.join('; ') : null
   };
 }
 
@@ -215,9 +238,9 @@ async function collectMetricsForOrg(orgKey, org) {
   ]);
 
   const failureRate =
-    n8nMetrics.executions24h && n8nMetrics.executions24h > 0
+    typeof n8nMetrics.executions24h === 'number' && n8nMetrics.executions24h > 0
       ? toPercent(n8nMetrics.failedExecutions24h || 0, n8nMetrics.executions24h)
-      : 0;
+      : null;
 
   return {
     org: {
@@ -245,7 +268,11 @@ async function collectMetricsForOrg(orgKey, org) {
       n8n: {
         activeWorkflows: n8nMetrics.activeWorkflows,
         executions24h: n8nMetrics.executions24h,
-        failedExecutions24h: n8nMetrics.failedExecutions24h
+        failedExecutions24h: n8nMetrics.failedExecutions24h,
+        metricsAvailable: n8nMetrics.metricsAvailable,
+        workflowStatusCode: n8nMetrics.workflowStatusCode,
+        executionStatusCode: n8nMetrics.executionStatusCode,
+        apiError: n8nMetrics.apiError
       }
     }
   };
@@ -256,7 +283,17 @@ app.get('/health', (_req, res) => {
 });
 
 app.get('/api/admin/metrics', async (req, res) => {
-  const { key: orgKey, config: org } = getOrgFromRequest(req.query.org);
+  const requestedOrg = req.query.org == null ? '' : String(req.query.org);
+  const { key: orgKey, config: org, invalid } = getOrgFromRequest(requestedOrg);
+
+  if (invalid) {
+    res.status(400).json({
+      error: 'Invalid org key',
+      message: 'Unknown org "' + requestedOrg + '". Valid keys: ' + Object.keys(orgs).join(', '),
+      at: formatIsoNow()
+    });
+    return;
+  }
 
   try {
     const response = await collectMetricsForOrg(orgKey, org);
@@ -306,7 +343,11 @@ app.get('/api/admin/metrics/all', async (_req, res) => {
               n8n: {
                 activeWorkflows: null,
                 executions24h: null,
-                failedExecutions24h: null
+                failedExecutions24h: null,
+                metricsAvailable: false,
+                workflowStatusCode: null,
+                executionStatusCode: null,
+                apiError: 'Failed to collect n8n metrics'
               }
             },
             error: error instanceof Error ? error.message : 'Unknown error'

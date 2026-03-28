@@ -21,17 +21,17 @@
 
     <section class="admin-kpis" aria-label="Kennzahlen">
       <article class="admin-kpi-card">
-        <div class="kpi-label">Aktive Mitarbeitende (24h)</div>
+        <div class="kpi-label">Benutzerkonten (gesamt)</div>
         <div class="kpi-value" id="kpi-active-users">0</div>
         <div class="kpi-delta positive" id="kpi-users-delta">+0%</div>
       </article>
       <article class="admin-kpi-card">
-        <div class="kpi-label">Dokumente indexiert (24h)</div>
+        <div class="kpi-label">Dokumente indexiert (gesamt)</div>
         <div class="kpi-value" id="kpi-docs">0</div>
         <div class="kpi-delta positive" id="kpi-docs-delta">+0%</div>
       </article>
       <article class="admin-kpi-card">
-        <div class="kpi-label">P95 Antwortzeit</div>
+        <div class="kpi-label">HTTP Antwortzeit</div>
         <div class="kpi-value" id="kpi-latency">0 ms</div>
         <div class="kpi-delta" id="kpi-latency-delta">0 ms vs. Vortag</div>
       </article>
@@ -213,14 +213,18 @@
     }
 
     function renderMetricsTable(data) {
+      const n8nHint = data.details.n8n.metricsAvailable
+        ? 'REST API /rest/workflows und /rest/executions'
+        : 'Nicht verfügbar: ' + (data.details.n8n.apiError || 'Unbekannter Fehler');
+
       const rows = [
         ['Open WebUI', 'Aktive Nutzer', formatNumber(data.kpis.activeUsers), 'Aus Datenbank gelesen'],
         ['Open WebUI', 'Indexierte Dokumente', formatNumber(data.kpis.indexedDocuments), 'Tabellenbasierte Zählung'],
         ['Open WebUI', 'Chats', formatNumber(data.details.openwebui.chats), 'Tabellenbasierte Zählung'],
         ['Open WebUI', 'DB Größe', formatBytes(data.details.openwebui.dbSizeBytes), 'Aktuelle Datenbankgröße'],
-        ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', 'REST API /rest/workflows'],
-        ['n8n', 'Ausführungen (24h)', data.details.n8n.executions24h ?? 'n/a', 'REST API /rest/executions'],
-        ['n8n', 'Fehlgeschlagen (24h)', data.details.n8n.failedExecutions24h ?? 'n/a', 'Berechnet aus letzten Ausführungen'],
+        ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', n8nHint],
+        ['n8n', 'Ausführungen (24h)', data.details.n8n.executions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Fehlgeschlagen (24h)', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
         ['System', 'Gesamtstatus', data.health.combinedOk ? 'Stabil' : 'Eingeschränkt', 'Open WebUI + n8n Check']
       ];
 
@@ -240,11 +244,14 @@
 
     function renderAudit(data) {
       const auditList = document.getElementById('audit-list');
+      const failureRateText = data.kpis.workflowFailureRatePct == null
+        ? 'n/a (n8n Metriken nicht verfügbar)'
+        : Number(data.kpis.workflowFailureRatePct).toFixed(1) + '%';
       const entries = [
         formatTime(data.at) + ' - Monitoring Snapshot aktualisiert.',
         formatTime(data.at) + ' - Open WebUI Status: ' + (data.health.openwebui.ok ? 'Online' : 'Warnung') + ' (' + (data.health.openwebui.latencyMs ?? 'n/a') + ' ms).',
         formatTime(data.at) + ' - n8n Status: ' + (data.health.n8n.ok ? 'Online' : 'Warnung') + ' (' + (data.health.n8n.latencyMs ?? 'n/a') + ' ms).',
-        formatTime(data.at) + ' - Workflow Fehlerquote 24h: ' + Number(data.kpis.workflowFailureRatePct || 0).toFixed(1) + '%.',
+        formatTime(data.at) + ' - Workflow Fehlerquote 24h: ' + failureRateText + '.',
         formatTime(data.at) + ' - Dokumente indexiert: ' + formatNumber(data.kpis.indexedDocuments) + '.'
       ];
 
@@ -263,15 +270,20 @@
       document.getElementById('kpi-docs-delta').textContent = 'Live aus Open WebUI Datenbank';
       document.getElementById('kpi-latency').textContent = formatNumber(data.kpis.p95LatencyMs || 0) + ' ms';
       document.getElementById('kpi-latency-delta').textContent = 'HTTP Antwortzeit Open WebUI';
-      document.getElementById('kpi-failure').textContent = Number(data.kpis.workflowFailureRatePct || 0).toFixed(1) + '%';
-      document.getElementById('kpi-failure-delta').textContent = 'Fehlgeschlagene n8n Ausführungen (24h)';
+      document.getElementById('kpi-failure').textContent = data.kpis.workflowFailureRatePct == null
+        ? 'n/a'
+        : Number(data.kpis.workflowFailureRatePct).toFixed(1) + '%';
+      document.getElementById('kpi-failure-delta').textContent = data.details.n8n.metricsAvailable
+        ? 'Fehlgeschlagene n8n Ausführungen (24h)'
+        : 'n8n Metriken nicht verfügbar';
     }
 
     async function fetchMetrics() {
       const url = './api/admin/metrics?org=' + encodeURIComponent(orgKey);
       const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) {
-        throw new Error('Monitoring API antwortet mit HTTP ' + response.status);
+        const errorJson = await response.json().catch(() => null);
+        throw new Error(errorJson?.message || ('Monitoring API antwortet mit HTTP ' + response.status));
       }
       return response.json();
     }

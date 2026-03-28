@@ -97,6 +97,10 @@
       return '<span class="job-status ' + (ok ? 'status-ok' : 'status-warn') + '">' + (ok ? 'Stabil' : 'Warnung') + '</span>';
     }
 
+    function formatLatency(value) {
+      return typeof value === 'number' ? formatNumber(value) + ' ms' : 'n/a';
+    }
+
     async function fetchAllMetrics() {
       const response = await fetch('./api/admin/metrics/all', { cache: 'no-store' });
       if (!response.ok) {
@@ -118,7 +122,7 @@
           '<td>' + formatStatus(item.health.n8n.ok) + '</td>' +
           '<td>' + formatNumber(item.kpis.activeUsers) + '</td>' +
           '<td>' + formatNumber(item.kpis.indexedDocuments) + '</td>' +
-          '<td>' + formatNumber(item.kpis.p95LatencyMs) + ' ms</td>' +
+          '<td>' + formatLatency(item.kpis.p95LatencyMs) + '</td>' +
           '<td><a href="./admin.html?org=' + encodeURIComponent(item.org.key) + '">Org-Detail</a></td>';
         body.appendChild(tr);
       });
@@ -132,6 +136,10 @@
         .filter((item) => !item.health.combinedOk)
         .map((item) => item.org.name);
 
+      const n8nMetricsUnavailable = data.orgs
+        .filter((item) => item.details?.n8n?.metricsAvailable === false)
+        .map((item) => item.org.name);
+
       const entries = [
         formatTime(data.at) + ' - Monitoring Snapshot für alle Instanzen aktualisiert.',
         formatTime(data.at) + ' - Stabil: ' + data.summary.healthyOrgs + ' von ' + data.summary.totalOrgs + ' Organisationen.',
@@ -139,7 +147,10 @@
         formatTime(data.at) + ' - Dokumente gesamt: ' + formatNumber(data.summary.totalIndexedDocuments) + '.',
         offline.length > 0
           ? formatTime(data.at) + ' - Warnung: ' + offline.join(', ') + ' nicht vollständig stabil.'
-          : formatTime(data.at) + ' - Alle Organisationen stabil.'
+          : formatTime(data.at) + ' - Alle Organisationen stabil.',
+        n8nMetricsUnavailable.length > 0
+          ? formatTime(data.at) + ' - n8n-Metriken nicht verfügbar für: ' + n8nMetricsUnavailable.join(', ') + '.'
+          : formatTime(data.at) + ' - n8n-Metriken für alle Organisationen verfügbar.'
       ];
 
       entries.forEach((entry) => {

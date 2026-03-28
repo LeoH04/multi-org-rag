@@ -14,9 +14,9 @@
 #   - nginx          : Reverse proxy + landing page
 #
 # Usage:
-#   1. Edit .env — set passwords, domain, and OLLAMA_BASE_URL
+#   1. Edit .env — set passwords, domain, and vLLM variables
 #   2. docker compose up -d
-#   3. Ensure Ollama is running locally and a model is pulled (e.g. ollama run llama3.1)
+#   3. Start vLLM services and wait for models to download on first boot
 #   4. Open http://localhost (or http://yourdomain.com)
 #
 #   With DOMAIN=localhost (default):
@@ -71,22 +71,38 @@ services:
       - backend
 
     # ──────────────────────────────────────────────
-  # Shared Ollama (LLM + embeddings backend)
+  # Shared vLLM Chat API (OpenAI-compatible)
   # ──────────────────────────────────────────────
-  ollama:
-    image: ollama/ollama:0.19.0-rc1
+  vllm-chat:
+    image: vllm/vllm-openai:latest
     restart: unless-stopped
     ports:
-      - "11434:11434"
+      - "8000:8000"
+    command:
+      - --model
+      - ${VLLM_MODEL}
+      - --served-model-name
+      - ${VLLM_MODEL_NAME}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --api-key
+      - ${VLLM_API_KEY}
+      - --gpu-memory-utilization
+      - "0.90"
+      - --max-model-len
+      - "8192"
     environment:
-      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
+      HF_TOKEN: ${HF_TOKEN:-}
+      NVIDIA_VISIBLE_DEVICES: ${VLLM_CHAT_VISIBLE_DEVICES}
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               device_ids:
-                - "${NVIDIA_VISIBLE_DEVICES}"
+                  - "${VLLM_CHAT_VISIBLE_DEVICES}"
               capabilities: [gpu]
     logging:
       driver: json-file
@@ -94,37 +110,48 @@ services:
         max-size: "10m"
         max-file: "3"
     volumes:
-      - ollama_data:/root/.ollama
+      - vllm_cache:/root/.cache/huggingface
     networks:
       - backend
+
   # ──────────────────────────────────────────────
-  # Ollama model preload (one-shot init)
+  # Shared vLLM Reranker API (OpenAI-compatible /v1/rerank)
   # ──────────────────────────────────────────────
-  ollama-init:
-    image: ollama/ollama:latest
-    restart: "no"
+  vllm-reranker:
+    image: vllm/vllm-openai:latest
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    command:
+      - --model
+      - ${VLLM_RERANK_MODEL}
+      - --task
+      - score
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --api-key
+      - ${RERANK_API_KEY}
     environment:
-      OLLAMA_HOST: http://ollama:11434
-      OLLAMA_PRELOAD_MODELS: ${OLLAMA_PRELOAD_MODELS}
-    entrypoint: |
-      sh -c '
-        set -e
-        echo "Waiting for Ollama API..."
-        until ollama list >/dev/null 2>&1; do
-          sleep 2
-        done
-        IFS=","
-        for model in $${OLLAMA_PRELOAD_MODELS}; do
-          model=$$(echo "$${model}" | xargs)
-          [ -z "$${model}" ] && continue
-          echo "Preloading model: $${model}"
-          ollama pull "$${model}"
-        done
-        echo "Model preload complete."
-      '
-    depends_on:
-      ollama:
-        condition: service_started
+      HF_TOKEN: ${HF_TOKEN:-}
+      NVIDIA_VISIBLE_DEVICES: ${VLLM_RERANK_VISIBLE_DEVICES}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids:
+                  - "${VLLM_RERANK_VISIBLE_DEVICES}"
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -H \"Authorization: Bearer ${RERANK_API_KEY}\" http://localhost:8000/v1/models >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - vllm_cache:/root/.cache/huggingface
     networks:
       - backend
 
@@ -146,16 +173,18 @@ services:
       VECTOR_DB: pgvector
       # PGVECTOR_DB_URL defaults to DATABASE_URL — no need to set separately
 
-      # --- LLM backend (shared Ollama service) ---
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      RAG_EMBEDDING_ENGINE: ollama
-      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      # --- LLM backend (shared vLLM service) ---
+      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
+      OPENAI_API_KEY: ${VLLM_API_KEY}
+      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
       CHUNK_OVERLAP: 200
       RAG_TOP_K: 5
       RAG_TOP_K_RERANKER: 3
+      # Configure the external vLLM reranker under Admin -> Documents.
       RAG_RERANKING_ENGINE: sentence_transformers
       RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
@@ -184,10 +213,10 @@ services:
         condition: service_healthy
       tika:
         condition: service_started
-      ollama:
+      vllm-chat:
         condition: service_started
-      ollama-init:
-        condition: service_completed_successfully
+      vllm-reranker:
+        condition: service_started
     networks:
       - backend
 
@@ -208,16 +237,18 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ig_mdb
       VECTOR_DB: pgvector
 
-      # --- LLM backend (shared Ollama service) ---
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      RAG_EMBEDDING_ENGINE: ollama
-      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      # --- LLM backend (shared vLLM service) ---
+      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
+      OPENAI_API_KEY: ${VLLM_API_KEY}
+      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
       CHUNK_OVERLAP: 200
       RAG_TOP_K: 5
       RAG_TOP_K_RERANKER: 3
+      # Configure the external vLLM reranker under Admin -> Documents.
       RAG_RERANKING_ENGINE: sentence_transformers
       RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
@@ -246,10 +277,10 @@ services:
         condition: service_healthy
       tika:
         condition: service_started
-      ollama:
+      vllm-chat:
         condition: service_started
-      ollama-init:
-        condition: service_completed_successfully
+      vllm-reranker:
+        condition: service_started
     networks:
       - backend
 
@@ -270,16 +301,18 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ask
       VECTOR_DB: pgvector
 
-      # --- LLM backend (shared Ollama service) ---
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      RAG_EMBEDDING_ENGINE: ollama
-      RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      # --- LLM backend (shared vLLM service) ---
+      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
+      OPENAI_API_KEY: ${VLLM_API_KEY}
+      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
       CHUNK_OVERLAP: 200
       RAG_TOP_K: 5
       RAG_TOP_K_RERANKER: 3
+      # Configure the external vLLM reranker under Admin -> Documents.
       RAG_RERANKING_ENGINE: sentence_transformers
       RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
@@ -308,10 +341,10 @@ services:
         condition: service_healthy
       tika:
         condition: service_started
-      ollama:
+      vllm-chat:
         condition: service_started
-      ollama-init:
-        condition: service_completed_successfully
+      vllm-reranker:
+        condition: service_started
     networks:
       - backend
 
@@ -492,7 +525,7 @@ services:
 # ──────────────────────────────────────────────
 volumes:
   postgres_data:
-  ollama_data:
+  vllm_cache:
   openwebui_gwf_data:
   openwebui_inge_graessle_data:
   openwebui_ask_data:
