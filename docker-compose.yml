@@ -213,10 +213,6 @@ services:
         condition: service_healthy
       tika:
         condition: service_started
-      vllm-chat:
-        condition: service_started
-      vllm-reranker:
-        condition: service_started
     networks:
       - backend
 
@@ -277,10 +273,6 @@ services:
         condition: service_healthy
       tika:
         condition: service_started
-      vllm-chat:
-        condition: service_started
-      vllm-reranker:
-        condition: service_started
     networks:
       - backend
 
@@ -340,10 +332,6 @@ services:
       postgres:
         condition: service_healthy
       tika:
-        condition: service_started
-      vllm-chat:
-        condition: service_started
-      vllm-reranker:
         condition: service_started
     networks:
       - backend
