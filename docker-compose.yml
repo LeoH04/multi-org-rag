@@ -76,6 +76,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
+    ports:
+      - "11434:11434"
     # Use GPU on hosts with NVIDIA Container Toolkit.
     # For CPU-only hosts, remove the next line.
     #gpus: all
@@ -142,6 +144,14 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      RAG_TEXT_SPLITTER: token
+      TIKTOKEN_ENCODING_NAME: cl100k_base
+      CHUNK_SIZE: 1400
+      CHUNK_OVERLAP: 200
+      RAG_TOP_K: 5
+      RAG_TOP_K_RERANKER: 3
+      RAG_RERANKING_ENGINE: sentence_transformers
+      RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
       # --- Document extraction (shared Tika) ---
       CONTENT_EXTRACTION_ENGINE: tika
@@ -196,6 +206,14 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      RAG_TEXT_SPLITTER: token
+      TIKTOKEN_ENCODING_NAME: cl100k_base
+      CHUNK_SIZE: 1400
+      CHUNK_OVERLAP: 200
+      RAG_TOP_K: 5
+      RAG_TOP_K_RERANKER: 3
+      RAG_RERANKING_ENGINE: sentence_transformers
+      RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
       # --- Document extraction (shared Tika) ---
       CONTENT_EXTRACTION_ENGINE: tika
@@ -250,6 +268,14 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      RAG_TEXT_SPLITTER: token
+      TIKTOKEN_ENCODING_NAME: cl100k_base
+      CHUNK_SIZE: 1400
+      CHUNK_OVERLAP: 200
+      RAG_TOP_K: 5
+      RAG_TOP_K_RERANKER: 3
+      RAG_RERANKING_ENGINE: sentence_transformers
+      RAG_RERANKING_MODEL: cross-encoder/ms-marco-MiniLM-L-6-v2
 
       # --- Document extraction (shared Tika) ---
       CONTENT_EXTRACTION_ENGINE: tika
@@ -287,7 +313,7 @@ services:
   # GWF Wohnungsgenossenschaft eG — n8n
   # ──────────────────────────────────────────────
   n8n-gwf:
-    image: n8nio/n8n:1.87.2
+    image: n8nio/n8n:2.13.4
     restart: unless-stopped
     environment:
       N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
@@ -311,7 +337,7 @@ services:
   # Inge Graessle MdB Buero — n8n
   # ──────────────────────────────────────────────
   n8n-inge-graessle:
-    image: n8nio/n8n:1.87.2
+    image: n8nio/n8n:2.13.4
     restart: unless-stopped
     environment:
       N8N_HOST: ${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
@@ -335,7 +361,7 @@ services:
   # Albert-Schweitzer-Kinderdorf — n8n
   # ──────────────────────────────────────────────
   n8n-ask:
-    image: n8nio/n8n:1.87.2
+    image: n8nio/n8n:2.13.4
     restart: unless-stopped
     environment:
       N8N_HOST: ${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
@@ -363,8 +389,6 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      # Uncomment for HTTPS (after running generate-certs.sh):
-      # - "443:443"
     environment:
       - DOMAIN=${DOMAIN}
       - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
@@ -378,8 +402,6 @@ services:
       - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       # Landing page
       - ./landing:/usr/share/nginx/html:ro
-      # SSL certificates (uncomment after running generate-certs.sh):
-      # - ./certs:/etc/nginx/certs:ro
     depends_on:
       - openwebui-gwf
       - openwebui-inge-graessle
