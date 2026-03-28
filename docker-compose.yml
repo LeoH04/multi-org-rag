@@ -176,7 +176,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_ENGINE: openai
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
@@ -236,7 +236,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_ENGINE: openai
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
@@ -296,7 +296,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: sentence_transformers
+      RAG_EMBEDDING_ENGINE: openai
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
