@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <div class="container admin-container">
+    <div class="admin-top">
+      <div>
+        <div class="eyebrow">Global Adminbereich</div>
+        <h1>Dashboard für alle Instanzen</h1>
+        <p class="subtitle">Zentrale Live-Sicht auf Open WebUI, n8n und Datenbankmetriken über alle Organisationen.</p>
+      </div>
+    </div>
+
+    <section class="admin-kpis" aria-label="Globale Kennzahlen">
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Organisationen Stabil</div>
+        <div class="kpi-value" id="kpi-healthy">0 / 0</div>
+        <div class="kpi-delta" id="kpi-health-delta">Live</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Aktive Nutzer gesamt</div>
+        <div class="kpi-value" id="kpi-users">0</div>
+        <div class="kpi-delta">Open WebUI DB</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Dokumente gesamt</div>
+        <div class="kpi-value" id="kpi-docs">0</div>
+        <div class="kpi-delta">Open WebUI DB</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Ø Latenz / Fehlerquote</div>
+        <div class="kpi-value" id="kpi-latency-failure">0 ms / 0%</div>
+        <div class="kpi-delta">Open WebUI + n8n</div>
+      </article>
+    </section>
+
+    <section class="admin-grid">
+      <article class="admin-panel panel-span-2">
+        <div class="panel-head">
+          <h2>Instanzen Überblick</h2>
+          <span id="updated-at">Warte auf Live-Daten...</span>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Organisation</th>
+                <th>Gesamtstatus</th>
+                <th>Open WebUI</th>
+                <th>n8n</th>
+                <th>Nutzer</th>
+                <th>Dokumente</th>
+                <th>Latenz</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="org-table-body"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-panel panel-span-2">
+        <div class="panel-head">
+          <h2>Monitoring Ereignisse</h2>
+          <span>Auto-Refresh alle 20 Sekunden</span>
+        </div>
+        <ul class="audit-list" id="audit-list"></ul>
+      </article>
+    </section>
+
+    <div class="admin-footer-actions">
+      <a class="chooser-back" href="./index.html">Zurück zur Organisationsauswahl</a>
+    </div>
+
+    <p class="footer">Liveansicht: Daten stammen aus /api/admin/metrics/all und werden in Echtzeit aktualisiert.</p>
+  </div>
+
+  <script>
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString('de-DE');
+    }
+
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function formatStatus(ok) {
+      return '<span class="job-status ' + (ok ? 'status-ok' : 'status-warn') + '">' + (ok ? 'Stabil' : 'Warnung') + '</span>';
+    }
+
+    async function fetchAllMetrics() {
+      const response = await fetch('./api/admin/metrics/all', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Monitoring API antwortet mit HTTP ' + response.status);
+      }
+      return response.json();
+    }
+
+    function renderTable(data) {
+      const body = document.getElementById('org-table-body');
+      body.innerHTML = '';
+
+      data.orgs.forEach((item) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + item.org.name + '</td>' +
+          '<td>' + formatStatus(item.health.combinedOk) + '</td>' +
+          '<td>' + formatStatus(item.health.openwebui.ok) + '</td>' +
+          '<td>' + formatStatus(item.health.n8n.ok) + '</td>' +
+          '<td>' + formatNumber(item.kpis.activeUsers) + '</td>' +
+          '<td>' + formatNumber(item.kpis.indexedDocuments) + '</td>' +
+          '<td>' + formatNumber(item.kpis.p95LatencyMs) + ' ms</td>' +
+          '<td><a href="./admin.html?org=' + encodeURIComponent(item.org.key) + '">Org-Detail</a></td>';
+        body.appendChild(tr);
+      });
+    }
+
+    function renderAudit(data) {
+      const auditList = document.getElementById('audit-list');
+      auditList.innerHTML = '';
+
+      const offline = data.orgs
+        .filter((item) => !item.health.combinedOk)
+        .map((item) => item.org.name);
+
+      const entries = [
+        formatTime(data.at) + ' - Monitoring Snapshot für alle Instanzen aktualisiert.',
+        formatTime(data.at) + ' - Stabil: ' + data.summary.healthyOrgs + ' von ' + data.summary.totalOrgs + ' Organisationen.',
+        formatTime(data.at) + ' - Aktive Nutzer gesamt: ' + formatNumber(data.summary.totalActiveUsers) + '.',
+        formatTime(data.at) + ' - Dokumente gesamt: ' + formatNumber(data.summary.totalIndexedDocuments) + '.',
+        offline.length > 0
+          ? formatTime(data.at) + ' - Warnung: ' + offline.join(', ') + ' nicht vollständig stabil.'
+          : formatTime(data.at) + ' - Alle Organisationen stabil.'
+      ];
+
+      entries.forEach((entry) => {
+        const li = document.createElement('li');
+        li.textContent = entry;
+        auditList.appendChild(li);
+      });
+    }
+
+    function updateSummary(data) {
+      document.getElementById('kpi-healthy').textContent = data.summary.healthyOrgs + ' / ' + data.summary.totalOrgs;
+      document.getElementById('kpi-users').textContent = formatNumber(data.summary.totalActiveUsers);
+      document.getElementById('kpi-docs').textContent = formatNumber(data.summary.totalIndexedDocuments);
+
+      const latency = data.summary.avgLatencyMs == null ? 'n/a' : formatNumber(data.summary.avgLatencyMs) + ' ms';
+      const failure = data.summary.avgWorkflowFailureRatePct == null
+        ? 'n/a'
+        : Number(data.summary.avgWorkflowFailureRatePct).toFixed(1) + '%';
+      document.getElementById('kpi-latency-failure').textContent = latency + ' / ' + failure;
+      document.getElementById('updated-at').textContent = 'Letztes Update: ' + formatTime(data.at);
+    }
+
+    async function refreshDashboard() {
+      const updatedAt = document.getElementById('updated-at');
+      try {
+        const data = await fetchAllMetrics();
+        updateSummary(data);
+        renderTable(data);
+        renderAudit(data);
+      } catch (error) {
+        updatedAt.textContent = 'Fehler beim Laden der Monitoring-Daten';
+        const auditList = document.getElementById('audit-list');
+        auditList.innerHTML = '';
+        const li = document.createElement('li');
+        li.textContent = 'Monitoring API nicht erreichbar: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler');
+        auditList.appendChild(li);
+      }
+    }
+
+    refreshDashboard();
+    setInterval(refreshDashboard, 20000);
+  </script>
+</body>
+</html>

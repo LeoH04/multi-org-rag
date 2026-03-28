@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <div class="container admin-container">
+    <div class="admin-top">
+      <div>
+        <div class="eyebrow">Adminbereich</div>
+        <h1 id="admin-title">Admin Dashboard</h1>
+        <p class="subtitle" id="admin-subtitle">Überwachung und Steuerung Ihrer KI-Plattform.</p>
+      </div>
+    </div>
+
+    <section class="admin-kpis" aria-label="Kennzahlen">
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Aktive Mitarbeitende (24h)</div>
+        <div class="kpi-value" id="kpi-active-users">0</div>
+        <div class="kpi-delta positive" id="kpi-users-delta">+0%</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Dokumente indexiert (24h)</div>
+        <div class="kpi-value" id="kpi-docs">0</div>
+        <div class="kpi-delta positive" id="kpi-docs-delta">+0%</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">P95 Antwortzeit</div>
+        <div class="kpi-value" id="kpi-latency">0 ms</div>
+        <div class="kpi-delta" id="kpi-latency-delta">0 ms vs. Vortag</div>
+      </article>
+      <article class="admin-kpi-card">
+        <div class="kpi-label">Workflow-Fehlerquote</div>
+        <div class="kpi-value" id="kpi-failure">0%</div>
+        <div class="kpi-delta negative" id="kpi-failure-delta">0.0 pp</div>
+      </article>
+    </section>
+
+    <section class="admin-grid">
+      <article class="admin-panel">
+        <div class="panel-head">
+          <h2>Antwortzeit-Verlauf (Open WebUI)</h2>
+          <span id="panel-load-note">Warte auf Live-Daten...</span>
+        </div>
+        <div class="bar-chart" id="load-chart" aria-label="Systemlast Verlauf"></div>
+      </article>
+
+      <article class="admin-panel">
+        <div class="panel-head">
+          <h2>Instanzstatus</h2>
+          <span>Open WebUI, n8n und Datenbank</span>
+        </div>
+        <ul class="audit-list" id="instance-status-list"></ul>
+      </article>
+
+      <article class="admin-panel panel-span-2">
+        <div class="panel-head">
+          <h2>Live-Metriken</h2>
+          <span id="metrics-count">0 Einträge</span>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Komponente</th>
+                <th>Metrik</th>
+                <th>Wert</th>
+                <th>Hinweis</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-panel panel-span-2">
+        <div class="panel-head">
+          <h2>Monitoring Ereignisse</h2>
+          <span>Auto-Refresh alle 20 Sekunden</span>
+        </div>
+        <ul class="audit-list" id="audit-list"></ul>
+      </article>
+    </section>
+
+    <div class="admin-footer-actions">
+      <a class="chooser-back" href="./admin-all.html">Zurück zum Globalen Dashboard</a>
+    </div>
+
+    <p class="footer">Liveansicht: Kennzahlen werden aus den laufenden Open WebUI-, n8n- und PostgreSQL-Instanzen gesammelt.</p>
+  </div>
+
+  <script>
+    const orgConfig = {
+      gwf: {
+        name: 'GWF Wohnungsgenossenschaft eG',
+        webuiSubdomain: 'gwf-stuttgart',
+        n8nSubdomain: 'gwf-stuttgart-automations'
+      },
+      'inge-graessle': {
+        name: 'Inge Gräßle MdB Büro',
+        webuiSubdomain: 'inge-graessle-mdb',
+        n8nSubdomain: 'inge-graessle-mdb-automations'
+      },
+      ask: {
+        name: 'Albert-Schweitzer-Kinderdorf',
+        webuiSubdomain: 'albert-schweitzer-kinderdorf',
+        n8nSubdomain: 'albert-schweitzer-kinderdorf-automations'
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const requestedOrg = params.get('org');
+    const orgKey = orgConfig[requestedOrg] ? requestedOrg : 'gwf';
+    const org = orgConfig[orgKey];
+
+    const domain = window.location.hostname;
+    const protocol = window.location.protocol;
+
+    function buildUrl(subdomain) {
+      return protocol + '//' + subdomain + '.' + domain;
+    }
+
+    document.title = org.name + ' - Admin Dashboard';
+    document.getElementById('admin-title').textContent = org.name + ' - Admin Dashboard';
+    document.getElementById('admin-subtitle').textContent = 'Überwachung und Steuerung der KI-Plattform für ' + org.name + '.';
+
+    const latencyHistory = [];
+    const maxHistory = 6;
+
+    function formatNumber(value) {
+      const numeric = Number(value || 0);
+      return numeric.toLocaleString('de-DE');
+    }
+
+    function formatBytes(bytes) {
+      const value = Number(bytes || 0);
+      if (value < 1024) return value + ' B';
+      if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+      if (value < 1024 * 1024 * 1024) return (value / (1024 * 1024)).toFixed(1) + ' MB';
+      return (value / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    }
+
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function renderLatencyChart() {
+      const chart = document.getElementById('load-chart');
+      chart.innerHTML = '';
+
+      const maxValue = Math.max(1000, ...latencyHistory.map((item) => item.latencyMs || 0));
+
+      latencyHistory.forEach((entry, index) => {
+        const item = document.createElement('div');
+        item.className = 'bar-item';
+
+        const bar = document.createElement('div');
+        bar.className = 'bar-fill';
+        const pct = Math.max(6, Math.round((entry.latencyMs / maxValue) * 100));
+        bar.style.height = pct + '%';
+        bar.style.animationDelay = index * 90 + 'ms';
+
+        const label = document.createElement('span');
+        label.className = 'bar-label';
+        label.textContent = formatTime(entry.at);
+
+        item.appendChild(bar);
+        item.appendChild(label);
+        chart.appendChild(item);
+      });
+    }
+
+    function renderInstanceStatus(data) {
+      const statusList = document.getElementById('instance-status-list');
+      statusList.innerHTML = '';
+
+      const rows = [
+        {
+          label: 'Open WebUI',
+          ok: data.health.openwebui.ok,
+          detail: 'HTTP ' + (data.health.openwebui.statusCode ?? 'n/a') + ' - ' + (data.health.openwebui.latencyMs ?? 'n/a') + ' ms'
+        },
+        {
+          label: 'n8n',
+          ok: data.health.n8n.ok,
+          detail: 'HTTP ' + (data.health.n8n.statusCode ?? 'n/a') + ' - ' + (data.health.n8n.latencyMs ?? 'n/a') + ' ms'
+        },
+        {
+          label: 'PostgreSQL Verbindungen',
+          ok: true,
+          detail: formatNumber(data.details.openwebui.dbConnections)
+        },
+        {
+          label: 'DB Größe',
+          ok: true,
+          detail: formatBytes(data.details.openwebui.dbSizeBytes)
+        }
+      ];
+
+      rows.forEach((row) => {
+        const item = document.createElement('li');
+        const cssClass = row.ok ? 'status-ok' : 'status-warn';
+        item.innerHTML = '<strong>' + row.label + '</strong><br><span class="job-status ' + cssClass + '">' + (row.ok ? 'Online' : 'Warnung') + '</span> ' + row.detail;
+        statusList.appendChild(item);
+      });
+    }
+
+    function renderMetricsTable(data) {
+      const rows = [
+        ['Open WebUI', 'Aktive Nutzer', formatNumber(data.kpis.activeUsers), 'Aus Datenbank gelesen'],
+        ['Open WebUI', 'Indexierte Dokumente', formatNumber(data.kpis.indexedDocuments), 'Tabellenbasierte Zählung'],
+        ['Open WebUI', 'Chats', formatNumber(data.details.openwebui.chats), 'Tabellenbasierte Zählung'],
+        ['Open WebUI', 'DB Größe', formatBytes(data.details.openwebui.dbSizeBytes), 'Aktuelle Datenbankgröße'],
+        ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', 'REST API /rest/workflows'],
+        ['n8n', 'Ausführungen (24h)', data.details.n8n.executions24h ?? 'n/a', 'REST API /rest/executions'],
+        ['n8n', 'Fehlgeschlagen (24h)', data.details.n8n.failedExecutions24h ?? 'n/a', 'Berechnet aus letzten Ausführungen'],
+        ['System', 'Gesamtstatus', data.health.combinedOk ? 'Stabil' : 'Eingeschränkt', 'Open WebUI + n8n Check']
+      ];
+
+      const body = document.getElementById('metrics-table-body');
+      body.innerHTML = '';
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + row[0] + '</td>' +
+          '<td>' + row[1] + '</td>' +
+          '<td>' + row[2] + '</td>' +
+          '<td>' + row[3] + '</td>';
+        body.appendChild(tr);
+      });
+      document.getElementById('metrics-count').textContent = rows.length + ' Einträge';
+    }
+
+    function renderAudit(data) {
+      const auditList = document.getElementById('audit-list');
+      const entries = [
+        formatTime(data.at) + ' - Monitoring Snapshot aktualisiert.',
+        formatTime(data.at) + ' - Open WebUI Status: ' + (data.health.openwebui.ok ? 'Online' : 'Warnung') + ' (' + (data.health.openwebui.latencyMs ?? 'n/a') + ' ms).',
+        formatTime(data.at) + ' - n8n Status: ' + (data.health.n8n.ok ? 'Online' : 'Warnung') + ' (' + (data.health.n8n.latencyMs ?? 'n/a') + ' ms).',
+        formatTime(data.at) + ' - Workflow Fehlerquote 24h: ' + Number(data.kpis.workflowFailureRatePct || 0).toFixed(1) + '%.',
+        formatTime(data.at) + ' - Dokumente indexiert: ' + formatNumber(data.kpis.indexedDocuments) + '.'
+      ];
+
+      auditList.innerHTML = '';
+      entries.forEach((entry) => {
+        const item = document.createElement('li');
+        item.textContent = entry;
+        auditList.appendChild(item);
+      });
+    }
+
+    function updateKpis(data) {
+      document.getElementById('kpi-active-users').textContent = formatNumber(data.kpis.activeUsers);
+      document.getElementById('kpi-users-delta').textContent = 'Live aus Open WebUI Datenbank';
+      document.getElementById('kpi-docs').textContent = formatNumber(data.kpis.indexedDocuments);
+      document.getElementById('kpi-docs-delta').textContent = 'Live aus Open WebUI Datenbank';
+      document.getElementById('kpi-latency').textContent = formatNumber(data.kpis.p95LatencyMs || 0) + ' ms';
+      document.getElementById('kpi-latency-delta').textContent = 'HTTP Antwortzeit Open WebUI';
+      document.getElementById('kpi-failure').textContent = Number(data.kpis.workflowFailureRatePct || 0).toFixed(1) + '%';
+      document.getElementById('kpi-failure-delta').textContent = 'Fehlgeschlagene n8n Ausführungen (24h)';
+    }
+
+    async function fetchMetrics() {
+      const url = './api/admin/metrics?org=' + encodeURIComponent(orgKey);
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Monitoring API antwortet mit HTTP ' + response.status);
+      }
+      return response.json();
+    }
+
+    async function refreshDashboard() {
+      const loadNote = document.getElementById('panel-load-note');
+      try {
+        const data = await fetchMetrics();
+
+        updateKpis(data);
+        renderInstanceStatus(data);
+        renderMetricsTable(data);
+        renderAudit(data);
+
+        latencyHistory.push({
+          at: data.at,
+          latencyMs: Number(data.kpis.p95LatencyMs || 0)
+        });
+        while (latencyHistory.length > maxHistory) {
+          latencyHistory.shift();
+        }
+        renderLatencyChart();
+
+        loadNote.textContent = 'Letztes Update: ' + formatTime(data.at);
+      } catch (error) {
+        loadNote.textContent = 'Fehler beim Laden der Monitoring-Daten';
+        const auditList = document.getElementById('audit-list');
+        auditList.innerHTML = '';
+        const item = document.createElement('li');
+        item.textContent = 'Monitoring API nicht erreichbar: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler');
+        auditList.appendChild(item);
+      }
+    }
+
+    refreshDashboard();
+    setInterval(refreshDashboard, 20000);
+  </script>
+</body>
+</html>

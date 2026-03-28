@@ -70,7 +70,7 @@ services:
     networks:
       - backend
 
-  # ──────────────────────────────────────────────
+    # ──────────────────────────────────────────────
   # Shared Ollama (LLM + embeddings backend)
   # ──────────────────────────────────────────────
   ollama:
@@ -78,9 +78,16 @@ services:
     restart: unless-stopped
     ports:
       - "11434:11434"
-    # Use GPU on hosts with NVIDIA Container Toolkit.
-    # For CPU-only hosts, remove the next line.
-    #gpus: all
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids:
+                - "${NVIDIA_VISIBLE_DEVICES}"
+              capabilities: [gpu]
     logging:
       driver: json-file
       options:
@@ -90,7 +97,6 @@ services:
       - ollama_data:/root/.ollama
     networks:
       - backend
-
   # ──────────────────────────────────────────────
   # Ollama model preload (one-shot init)
   # ──────────────────────────────────────────────
@@ -384,6 +390,36 @@ services:
   # ──────────────────────────────────────────────
   # Nginx — Reverse Proxy + Landing Page
   # ──────────────────────────────────────────────
+  admin-monitor:
+    build:
+      context: ./admin-monitor
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_ADMIN_USER: ${N8N_ADMIN_USER}
+      N8N_ADMIN_PASSWORD: ${N8N_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      openwebui-gwf:
+        condition: service_started
+      openwebui-inge-graessle:
+        condition: service_started
+      openwebui-ask:
+        condition: service_started
+      n8n-gwf:
+        condition: service_started
+      n8n-inge-graessle:
+        condition: service_started
+      n8n-ask:
+        condition: service_started
+    networks:
+      - backend
+
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -403,6 +439,7 @@ services:
       # Landing page
       - ./landing:/usr/share/nginx/html:ro
     depends_on:
+      - admin-monitor
       - openwebui-gwf
       - openwebui-inge-graessle
       - openwebui-ask
