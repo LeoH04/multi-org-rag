@@ -92,7 +92,7 @@ services:
       - --gpu-memory-utilization
       - "0.90"
       - --max-model-len
-      - "8192"
+      - ${VLLM_MAX_MODEL_LEN}
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
       NVIDIA_VISIBLE_DEVICES: ${VLLM_CHAT_VISIBLE_DEVICES}
@@ -174,8 +174,6 @@ services:
       # PGVECTOR_DB_URL defaults to DATABASE_URL — no need to set separately
 
       # --- LLM backend (shared vLLM service) ---
-      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
-      OPENAI_API_KEY: ${VLLM_API_KEY}
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
       OPENAI_API_KEYS: ${VLLM_API_KEY}
@@ -249,8 +247,6 @@ services:
       VECTOR_DB: pgvector
 
       # --- LLM backend (shared vLLM service) ---
-      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
-      OPENAI_API_KEY: ${VLLM_API_KEY}
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
       OPENAI_API_KEYS: ${VLLM_API_KEY}
@@ -324,8 +320,6 @@ services:
       VECTOR_DB: pgvector
 
       # --- LLM backend (shared vLLM service) ---
-      OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
-      OPENAI_API_KEY: ${VLLM_API_KEY}
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
       OPENAI_API_KEYS: ${VLLM_API_KEY}

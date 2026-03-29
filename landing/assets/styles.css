@@ -140,28 +140,6 @@ h1 {
   color: #114b89;
 }
 
-.section-head {
-  margin-top: 1.6rem;
-  margin-bottom: 0.8rem;
-}
-
-.section-head h3 {
-  font-family: 'Merriweather', Georgia, serif;
-  font-size: 1.12rem;
-  color: var(--ink);
-  margin-bottom: 0.3rem;
-}
-
-.section-head p {
-  color: var(--ink-muted);
-  font-size: 0.95rem;
-  line-height: 1.45;
-}
-
-.automation-grid {
-  margin-top: 0.4rem;
-}
-
 .org-card {
   width: 100%;
   max-width: 100%;
@@ -217,19 +195,6 @@ button.org-card {
   background: #f9fcff;
   border-radius: 16px;
   padding: 1rem;
-}
-
-.portal-chooser[hidden] {
-  display: none;
-}
-
-.show-portal-choice #org-selection,
-.show-portal-choice #portal-subtitle {
-  display: none !important;
-}
-
-.show-portal-choice #portal-chooser {
-  display: block;
 }
 
 .choice-grid {
@@ -330,32 +295,6 @@ button.org-card {
   box-shadow: 0 14px 30px rgba(21, 34, 56, 0.14);
 }
 
-.org-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.08rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.2rem;
-  background: var(--brand);
-}
-
-.org1 .org-icon {
-  background: var(--org1);
-}
-
-.org2 .org-icon {
-  background: var(--org2);
-}
-
-.org3 .org-icon {
-  background: var(--org3);
-}
-
 .org-card h2 {
   font-family: 'Merriweather', Georgia, serif;
   font-size: 1.19rem;
@@ -440,32 +379,6 @@ button.org-card {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-}
-
-.admin-top-actions {
-  display: flex;
-  gap: 0.6rem;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.admin-pill {
-  border: 1px solid #b9cce4;
-  background: #ffffff;
-  color: var(--ink);
-  border-radius: 999px;
-  padding: 0.48rem 0.92rem;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.89rem;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-
-.admin-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(21, 34, 56, 0.1);
-  border-color: #93afd0;
 }
 
 .admin-kpis {
@@ -589,41 +502,6 @@ button.org-card {
   font-weight: 700;
 }
 
-.role-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.62rem;
-}
-
-.role-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-}
-
-.role-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.6rem;
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-  font-weight: 600;
-}
-
-.role-progress {
-  border-radius: 999px;
-  background: #e8eff7;
-  height: 8px;
-  overflow: hidden;
-}
-
-.role-progress span {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0a76c8 0%, #00a6a0 100%);
-}
-
 .table-wrap {
   overflow-x: auto;
 }
@@ -725,10 +603,6 @@ button.org-card {
     align-items: stretch;
   }
 
-  .admin-top-actions {
-    justify-content: flex-start;
-  }
-
   .admin-kpis {
     grid-template-columns: 1fr;
   }
@@ -755,10 +629,6 @@ button.org-card {
 
   .subtitle {
     margin-bottom: 1.3rem;
-  }
-
-  .section-head {
-    margin-top: 1.35rem;
   }
 
   .choice-grid {
