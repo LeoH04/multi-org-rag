@@ -176,6 +176,10 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      OPENAI_API_KEYS: ${VLLM_API_KEY}
+      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
@@ -247,6 +251,10 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      OPENAI_API_KEYS: ${VLLM_API_KEY}
+      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
@@ -318,6 +326,10 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      OPENAI_API_KEYS: ${VLLM_API_KEY}
+      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
