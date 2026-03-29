@@ -176,8 +176,11 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: openai
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
+      WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
@@ -213,7 +216,7 @@ services:
       ENABLE_API_KEYS: "true"
 
       # --- Config persistence (set to true only during initial setup) ---
-      RESET_CONFIG_ON_START: "false"
+      RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
     volumes:
       - openwebui_gwf_data:/app/backend/data
     depends_on:
@@ -244,8 +247,11 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: openai
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
+      WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
@@ -281,7 +287,7 @@ services:
       ENABLE_API_KEYS: "true"
 
       # --- Config persistence (set to true only during initial setup) ---
-      RESET_CONFIG_ON_START: "false"
+      RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
     volumes:
       - openwebui_inge_graessle_data:/app/backend/data
     depends_on:
@@ -312,8 +318,11 @@ services:
       # --- LLM backend (shared vLLM service) ---
       OPENAI_API_BASE_URL: http://vllm-chat:8000/v1
       OPENAI_API_KEY: ${VLLM_API_KEY}
-      RAG_EMBEDDING_ENGINE: openai
+      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
+      WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
       RAG_TEXT_SPLITTER: token
       TIKTOKEN_ENCODING_NAME: cl100k_base
       CHUNK_SIZE: 1400
@@ -349,7 +358,7 @@ services:
       ENABLE_API_KEYS: "true"
 
       # --- Config persistence (set to true only during initial setup) ---
-      RESET_CONFIG_ON_START: "false"
+      RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
     volumes:
       - openwebui_ask_data:/app/backend/data
     depends_on:
