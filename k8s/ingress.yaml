@@ -1,0 +1,112 @@
+# ============================================================
+# OPTIONAL — Kubernetes Ingress (alternative to nginx-landing)
+#
+# Use this INSTEAD of the nginx-landing LoadBalancer Service
+# if your cluster has an Ingress controller (e.g. ingress-nginx).
+#
+# If using this, you can simplify the nginx-landing deployment
+# to only serve static files, and let the Ingress handle
+# subdomain routing directly to backend Services.
+#
+# This file is NOT included in kustomization.yaml by default.
+# To enable: uncomment the ingress.yaml line in kustomization.yaml.
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multi-org-rag
+  namespace: multi-org-rag
+  annotations:
+    # nginx ingress controller annotations
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    # WebSocket support
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+spec:
+  ingressClassName: nginx
+  rules:
+    # Landing page + admin API
+    - host: localhost
+      http:
+        paths:
+          - path: /api/admin
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-monitor
+                port:
+                  number: 3000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-landing
+                port:
+                  number: 80
+    # Open WebUI instances
+    - host: gwf-stuttgart.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openwebui-gwf
+                port:
+                  number: 8080
+    - host: inge-graessle-mdb.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openwebui-inge-graessle
+                port:
+                  number: 8080
+    - host: albert-schweitzer-kinderdorf.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openwebui-ask
+                port:
+                  number: 8080
+    # n8n instances
+    - host: gwf-stuttgart-automations.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n-gwf
+                port:
+                  number: 5678
+    - host: inge-graessle-mdb-automations.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n-inge-graessle
+                port:
+                  number: 5678
+    - host: albert-schweitzer-kinderdorf-automations.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n-ask
+                port:
+                  number: 5678

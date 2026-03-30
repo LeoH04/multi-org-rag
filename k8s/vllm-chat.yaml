@@ -1,0 +1,117 @@
+# ============================================================
+# vLLM Chat — OpenAI-compatible LLM API (GPU required)
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-chat
+  namespace: multi-org-rag
+  labels:
+    app: vllm-chat
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vllm-chat
+  template:
+    metadata:
+      labels:
+        app: vllm-chat
+    spec:
+      containers:
+        - name: vllm-chat
+          image: vllm/vllm-openai:latest
+          ports:
+            - containerPort: 8000
+          args:
+            - "--model"
+            - "$(VLLM_MODEL)"
+            - "--served-model-name"
+            - "$(VLLM_MODEL_NAME)"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8000"
+            - "--api-key"
+            - "$(VLLM_API_KEY)"
+            - "--gpu-memory-utilization"
+            - "0.90"
+            - "--max-model-len"
+            - "$(VLLM_MAX_MODEL_LEN)"
+          env:
+            - name: VLLM_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: VLLM_MODEL
+            - name: VLLM_MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: VLLM_MODEL_NAME
+            - name: VLLM_MAX_MODEL_LEN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: VLLM_MAX_MODEL_LEN
+            - name: VLLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: VLLM_API_KEY
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: HF_TOKEN
+          volumeMounts:
+            - name: cache
+              mountPath: /root/.cache/huggingface
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "2"
+            limits:
+              nvidia.com/gpu: "1"     # NVIDIA device plugin allocates GPU
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'curl -sf -H "Authorization: Bearer $VLLM_API_KEY" http://localhost:8000/v1/models >/dev/null'
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 40      # up to 20 min for large model download
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'curl -sf -H "Authorization: Bearer $VLLM_API_KEY" http://localhost:8000/v1/models >/dev/null'
+            periodSeconds: 15
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: vllm-chat-cache
+      # Ensure scheduling on a GPU node
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-chat
+  namespace: multi-org-rag
+spec:
+  selector:
+    app: vllm-chat
+  ports:
+    - port: 8000
+      targetPort: 8000

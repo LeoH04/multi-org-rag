@@ -1,0 +1,13 @@
+# ============================================================
+# Nginx Landing Page — custom image
+# Bakes the landing/ static files into nginx:alpine.
+# The nginx.conf.template is mounted at runtime via ConfigMap.
+#
+# Build from project root:
+#   docker build -f k8s/Dockerfile.nginx-landing -t your-registry/nginx-landing:latest .
+#   docker push your-registry/nginx-landing:latest
+# ============================================================
+FROM nginx:alpine
+
+# Copy landing page (HTML, CSS, images) into nginx web root
+COPY landing/ /usr/share/nginx/html/
