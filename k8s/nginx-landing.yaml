@@ -2,8 +2,8 @@
 # Nginx — Reverse Proxy + Landing Page (custom image)
 #
 # Build from project root:
-#   docker build -f k8s/Dockerfile.nginx-landing -t your-registry/nginx-landing:latest .
-#   docker push your-registry/nginx-landing:latest
+#   docker build -f k8s/Dockerfile.nginx-landing -t localhost:32000/nginx-landing:latest .
+#   docker push localhost:32000/nginx-landing:latest
 # Then update the image below.
 # ============================================================
 apiVersion: apps/v1
@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: your-registry/nginx-landing:latest   # <-- CHANGE to your registry
+          image: localhost:32000/nginx-landing:latest
           ports:
             - containerPort: 80
           env:
@@ -94,7 +94,7 @@ metadata:
   name: nginx-landing
   namespace: multi-org-rag
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: nginx-landing
   ports:

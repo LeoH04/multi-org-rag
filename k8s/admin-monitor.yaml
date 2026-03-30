@@ -2,8 +2,8 @@
 # Admin Monitor — Express.js metrics API (custom image)
 #
 # Build:
-#   docker build -t your-registry/admin-monitor:latest ./admin-monitor
-#   docker push your-registry/admin-monitor:latest
+#   docker build -t localhost:32000/admin-monitor:latest ./admin-monitor
+#   docker push localhost:32000/admin-monitor:latest
 # Then update the image below.
 # ============================================================
 apiVersion: apps/v1
@@ -29,7 +29,7 @@ spec:
           command: ['sh', '-c', 'until nc -z postgres 5432; do echo "Waiting for postgres..."; sleep 2; done']
       containers:
         - name: admin-monitor
-          image: your-registry/admin-monitor:latest   # <-- CHANGE to your registry
+          image: localhost:32000/admin-monitor:latest
           ports:
             - containerPort: 3000
           env:

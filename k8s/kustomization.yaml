@@ -46,6 +46,5 @@ resources:
   - nginx-landing.yaml
   - backup-cronjob.yaml
 
-  # 8. Ingress (OPTIONAL — uncomment to use Ingress controller
-  #    instead of the nginx-landing LoadBalancer)
-  # - ingress.yaml
+  # 8. Ingress (enabled for server deployment)
+  - ingress.yaml

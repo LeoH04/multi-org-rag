@@ -4,8 +4,8 @@
 # The nginx.conf.template is mounted at runtime via ConfigMap.
 #
 # Build from project root:
-#   docker build -f k8s/Dockerfile.nginx-landing -t your-registry/nginx-landing:latest .
-#   docker push your-registry/nginx-landing:latest
+#   docker build -f k8s/Dockerfile.nginx-landing -t localhost:32000/nginx-landing:latest .
+#   docker push localhost:32000/nginx-landing:latest
 # ============================================================
 FROM nginx:alpine
 

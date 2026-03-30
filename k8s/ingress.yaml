@@ -28,7 +28,7 @@ metadata:
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "upgrade";
 spec:
-  ingressClassName: nginx
+  ingressClassName: public
   rules:
     # Landing page + admin API
     - host: localhost
