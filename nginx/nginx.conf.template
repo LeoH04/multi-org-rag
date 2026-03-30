@@ -206,7 +206,9 @@ server {
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $host;
         proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Origin $scheme://$host;
 
         # Disable buffering for n8n editor live updates/reconnects
         proxy_buffering    off;
@@ -241,7 +243,9 @@ server {
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $host;
         proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Origin $scheme://$host;
 
         # Disable buffering for n8n editor live updates/reconnects
         proxy_buffering    off;
@@ -276,7 +280,9 @@ server {
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $host;
         proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Origin $scheme://$host;
 
         # Disable buffering for n8n editor live updates/reconnects
         proxy_buffering    off;

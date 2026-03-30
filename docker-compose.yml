@@ -385,6 +385,8 @@ services:
       N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
+      N8N_PROXY_HOPS: 1
+      N8N_PUSH_BACKEND: websocket
       N8N_EDITOR_BASE_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
       WEBHOOK_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
@@ -409,6 +411,8 @@ services:
       N8N_HOST: ${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
+      N8N_PROXY_HOPS: 1
+      N8N_PUSH_BACKEND: websocket
       N8N_EDITOR_BASE_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
       WEBHOOK_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
@@ -433,6 +437,8 @@ services:
       N8N_HOST: ${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
+      N8N_PROXY_HOPS: 1
+      N8N_PUSH_BACKEND: websocket
       N8N_EDITOR_BASE_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
       WEBHOOK_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
