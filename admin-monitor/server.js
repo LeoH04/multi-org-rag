@@ -68,17 +68,37 @@ async function probeUrl(url) {
   }
 }
 
-async function countFromFirstExistingTable(client, tableNames) {
-  for (const tableName of tableNames) {
+async function countFromPreferredExistingTable(client, tableConfigs) {
+  let fallbackCount = null;
+
+  for (const config of tableConfigs) {
+    const tableName = typeof config === 'string' ? config : config.table;
+    const countSql = typeof config === 'string' ? 'COUNT(*)::bigint' : config.countSql || 'COUNT(*)::bigint';
+
     const existsQuery = await client.query('SELECT to_regclass($1) AS table_ref', [
       'public.' + tableName
     ]);
-    if (existsQuery.rows[0].table_ref) {
-      const countResult = await client.query('SELECT COUNT(*)::bigint AS count FROM public."' + tableName + '"');
-      return Number(countResult.rows[0].count);
+
+    if (!existsQuery.rows[0].table_ref) {
+      continue;
+    }
+
+    const countResult = await client.query(
+      'SELECT ' + countSql + ' AS count FROM public."' + tableName + '"'
+    );
+    const count = Number(countResult.rows[0].count || 0);
+
+    if (fallbackCount == null) {
+      fallbackCount = count;
+    }
+
+    // Prefer the first table that actually has data.
+    if (count > 0) {
+      return count;
     }
   }
-  return 0;
+
+  return fallbackCount == null ? 0 : fallbackCount;
 }
 
 async function fetchOpenWebUiDbMetrics(dbName) {
@@ -106,15 +126,21 @@ async function fetchOpenWebUiDbMetrics(dbName) {
       'SELECT COALESCE(SUM(n_live_tup), 0)::bigint AS count FROM pg_stat_user_tables'
     );
 
-    const users = await countFromFirstExistingTable(client, ['users', 'user']);
-    const documents = await countFromFirstExistingTable(client, [
+    const users = await countFromPreferredExistingTable(client, ['users', 'user']);
+    const documents = await countFromPreferredExistingTable(client, [
+      // Current Open WebUI schemas
+      'file',
+      { table: 'knowledge_file', countSql: 'COUNT(DISTINCT file_id)::bigint' },
+      'knowledge',
+
+      // Legacy/fallback schemas
       'documents',
       'document',
       'files',
-      'knowledge',
-      'knowledge_items'
+      'knowledge_items',
+      { table: 'document_chunk', countSql: 'COUNT(DISTINCT collection_name)::bigint' }
     ]);
-    const chats = await countFromFirstExistingTable(client, [
+    const chats = await countFromPreferredExistingTable(client, [
       'chats',
       'chat',
       'messages',
