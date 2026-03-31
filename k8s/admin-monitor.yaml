@@ -49,21 +49,16 @@ spec:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: POSTGRES_PASSWORD
-            - name: N8N_API_KEY_ORG1
+            - name: N8N_ADMIN_USER
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: N8N_API_KEY_ORG1
-            - name: N8N_API_KEY_ORG2
+                  key: N8N_ADMIN_USER
+            - name: N8N_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: N8N_API_KEY_ORG2
-            - name: N8N_API_KEY_ORG3
-              valueFrom:
-                secretKeyRef:
-                  name: multi-org-secrets
-                  key: N8N_API_KEY_ORG3
+                  key: N8N_ADMIN_PASSWORD
           readinessProbe:
             httpGet:
               path: /health

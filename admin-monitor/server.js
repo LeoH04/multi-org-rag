@@ -11,22 +11,19 @@ const orgs = {
     name: 'GWF Wohnungsgenossenschaft eG',
     dbName: 'openwebui_gwf',
     openwebuiUrl: 'http://openwebui-gwf:8080/',
-    n8nUrl: 'http://n8n-gwf:5678/',
-    n8nApiKey: process.env.N8N_API_KEY_ORG1 || ''
+    n8nUrl: 'http://n8n-gwf:5678/'
   },
   'inge-graessle': {
     name: 'Inge Gräßle MdB Büro',
     dbName: 'openwebui_ig_mdb',
     openwebuiUrl: 'http://openwebui-inge-graessle:8080/',
-    n8nUrl: 'http://n8n-inge-graessle:5678/',
-    n8nApiKey: process.env.N8N_API_KEY_ORG2 || ''
+    n8nUrl: 'http://n8n-inge-graessle:5678/'
   },
   ask: {
     name: 'Albert-Schweitzer-Kinderdorf',
     dbName: 'openwebui_ask',
     openwebuiUrl: 'http://openwebui-ask:8080/',
-    n8nUrl: 'http://n8n-ask:5678/',
-    n8nApiKey: process.env.N8N_API_KEY_ORG3 || ''
+    n8nUrl: 'http://n8n-ask:5678/'
   }
 };
 
@@ -34,6 +31,9 @@ const postgresHost = process.env.POSTGRES_HOST || 'postgres';
 const postgresPort = Number(process.env.POSTGRES_PORT || 5432);
 const postgresUser = process.env.POSTGRES_USER;
 const postgresPassword = process.env.POSTGRES_PASSWORD;
+
+const n8nUser = process.env.N8N_ADMIN_USER;
+const n8nPassword = process.env.N8N_ADMIN_PASSWORD;
 
 function getOrgFromRequest(orgKey) {
   if (orgKey == null || orgKey === '') {
@@ -160,13 +160,21 @@ async function fetchOpenWebUiDbMetrics(dbName) {
   }
 }
 
-async function fetchN8nMetrics(n8nBaseUrl, apiKey) {
-  const headers = {
-    Accept: 'application/json'
-  };
-  if (apiKey) {
-    headers['X-N8N-API-KEY'] = apiKey;
+function n8nAuthHeader() {
+  if (!n8nUser || !n8nPassword) {
+    return {};
   }
+  const token = Buffer.from(n8nUser + ':' + n8nPassword).toString('base64');
+  return {
+    Authorization: 'Basic ' + token
+  };
+}
+
+async function fetchN8nMetrics(n8nBaseUrl) {
+  const headers = {
+    Accept: 'application/json',
+    ...n8nAuthHeader()
+  };
 
   const [workflowRes, executionRes] = await Promise.all([
     fetch(new URL('/rest/workflows?limit=250', n8nBaseUrl), { headers }).catch(() => null),
@@ -252,7 +260,7 @@ async function collectMetricsForOrg(orgKey, org) {
     probeUrl(org.openwebuiUrl),
     probeUrl(org.n8nUrl),
     fetchOpenWebUiDbMetrics(org.dbName),
-    fetchN8nMetrics(org.n8nUrl, org.n8nApiKey)
+    fetchN8nMetrics(org.n8nUrl)
   ]);
 
   const failureRate =
