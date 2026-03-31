@@ -1,0 +1,143 @@
+# ============================================================
+# PersistentVolumeClaims — one per stateful component
+# Adjust storageClassName and sizes for your cluster.
+# ============================================================
+
+# PostgreSQL data (all 3 org databases + pgvector indexes)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# vLLM chat model cache (HuggingFace download)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-chat-cache
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# vLLM reranker model cache (HuggingFace download)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-reranker-cache
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Open WebUI data — GWF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openwebui-gwf-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# Open WebUI data — Inge Graessle
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openwebui-inge-graessle-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# Open WebUI data — ASK
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openwebui-ask-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# n8n data — GWF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-gwf-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# n8n data — Inge Graessle
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-inge-graessle-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# n8n data — ASK
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-ask-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# Database backups
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backups
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 10Gi

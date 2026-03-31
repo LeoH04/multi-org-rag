@@ -1,0 +1,260 @@
+# ============================================================
+# Nginx reverse-proxy config template.
+# Mounted at /etc/nginx/templates/default.conf.template
+# nginx:alpine auto-expands ${VAR} from container env vars.
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: multi-org-rag
+data:
+  default.conf.template: |
+    # ============================================================
+    # Nginx Reverse Proxy — Multi-Org Open WebUI (Production)
+    # ============================================================
+
+    server_names_hash_bucket_size 128;
+    server_names_hash_max_size 1024;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    limit_req_zone $binary_remote_addr zone=general:10m rate=100r/s;
+
+    # ──────────────────────────────────────────────
+    # Landing Page
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${DOMAIN} localhost;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location /api/admin/ {
+            proxy_pass         http://admin-monitor:3000/api/admin/;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_read_timeout 30s;
+            proxy_send_timeout 30s;
+        }
+
+        location /health/admin-monitor {
+            proxy_pass         http://admin-monitor:3000/health;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # GWF Wohnungsgenossenschaft eG — Open WebUI
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${ORG1_SUBDOMAIN}.${DOMAIN} ${ORG1_SUBDOMAIN}.localhost;
+
+        client_max_body_size 100M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://openwebui-gwf:8080;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_buffering    off;
+            proxy_cache        off;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # Inge Graessle MdB Buero — Open WebUI
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${ORG2_SUBDOMAIN}.${DOMAIN} ${ORG2_SUBDOMAIN}.localhost;
+
+        client_max_body_size 100M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://openwebui-inge-graessle:8080;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_buffering    off;
+            proxy_cache        off;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # Albert-Schweitzer-Kinderdorf — Open WebUI
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${ORG3_SUBDOMAIN}.${DOMAIN} ${ORG3_SUBDOMAIN}.localhost;
+
+        client_max_body_size 100M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://openwebui-ask:8080;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_buffering    off;
+            proxy_cache        off;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # GWF Wohnungsgenossenschaft eG — n8n
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${N8N_ORG1_SUBDOMAIN}.${DOMAIN} ${N8N_ORG1_SUBDOMAIN}.localhost;
+
+        client_max_body_size 25M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://n8n-gwf:5678;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # Inge Graessle MdB Buero — n8n
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${N8N_ORG2_SUBDOMAIN}.${DOMAIN} ${N8N_ORG2_SUBDOMAIN}.localhost;
+
+        client_max_body_size 25M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://n8n-inge-graessle:5678;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    # ──────────────────────────────────────────────
+    # Albert-Schweitzer-Kinderdorf — n8n
+    # ──────────────────────────────────────────────
+    server {
+        listen 80;
+        server_name ${N8N_ORG3_SUBDOMAIN}.${DOMAIN} ${N8N_ORG3_SUBDOMAIN}.localhost;
+
+        client_max_body_size 25M;
+        limit_req zone=general burst=400;
+
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            proxy_pass         http://n8n-ask:5678;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Upgrade $http_upgrade;
+            proxy_set_header   Connection $connection_upgrade;
+
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }

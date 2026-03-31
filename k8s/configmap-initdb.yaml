@@ -1,0 +1,19 @@
+# ============================================================
+# PostgreSQL init script — creates one database per org.
+# Runs only on first startup (empty data volume).
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  namespace: multi-org-rag
+data:
+  init-multi-db.sql: |
+    -- GWF database
+    CREATE DATABASE openwebui_gwf;
+
+    -- Inge Graessle MdB Buro database
+    CREATE DATABASE openwebui_ig_mdb;
+
+    -- Albert-Schweitzer-Kinderdorf database
+    CREATE DATABASE openwebui_ask;

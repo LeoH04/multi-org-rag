@@ -1,0 +1,60 @@
+# ============================================================
+# Database Backup CronJob — runs pg_dump daily at 02:00
+# Replaces the docker-compose backup service loop.
+# ============================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+  namespace: multi-org-rag
+spec:
+  schedule: "0 2 * * *"
+  timeZone: "Europe/Berlin"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: pgvector/pgvector:0.8.2-pg17
+              env:
+                - name: POSTGRES_USER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: multi-org-config
+                      key: POSTGRES_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: multi-org-secrets
+                      key: POSTGRES_PASSWORD
+              command:
+                - sh
+                - -c
+                - |
+                  echo "[$(date -Iseconds)] Starting backup..."
+                  for db in openwebui_gwf openwebui_ig_mdb openwebui_ask; do
+                    pg_dump -h postgres -U "$POSTGRES_USER" -d "$db" \
+                      | gzip > "/backups/${db}_$(date +%Y%m%d_%H%M%S).sql.gz"
+                    echo "[$(date -Iseconds)] Backed up $db"
+                  done
+                  find /backups -name "*.sql.gz" -mtime +7 -delete
+                  echo "[$(date -Iseconds)] Backup complete. Old backups cleaned."
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  memory: "128Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups

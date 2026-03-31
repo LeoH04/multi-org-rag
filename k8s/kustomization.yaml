@@ -1,0 +1,50 @@
+# ============================================================
+# Kustomize — apply all manifests in order
+#
+# Usage:
+#   kubectl apply -k k8s/
+#
+# Or without kustomize:
+#   kubectl apply -f k8s/namespace.yaml
+#   kubectl apply -f k8s/
+# ============================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: multi-org-rag
+
+resources:
+  # 1. Namespace
+  - namespace.yaml
+
+  # 2. Configuration
+  - configmap.yaml
+  - secret.yaml
+  - configmap-initdb.yaml
+  - configmap-nginx.yaml
+
+  # 3. Storage
+  - pvc.yaml
+
+  # 4. Shared infrastructure
+  - postgres.yaml
+  - tika.yaml
+  - vllm-chat.yaml
+  - vllm-reranker.yaml
+
+  # 5. Per-org Open WebUI
+  - openwebui-gwf.yaml
+  - openwebui-inge-graessle.yaml
+  - openwebui-ask.yaml
+
+  # 6. Per-org n8n
+  - n8n-gwf.yaml
+  - n8n-inge-graessle.yaml
+  - n8n-ask.yaml
+
+  # 7. Support services
+  - admin-monitor.yaml
+  - nginx-landing.yaml
+  - backup-cronjob.yaml
+
+  # 8. Ingress (enabled for server deployment)
+  - ingress.yaml

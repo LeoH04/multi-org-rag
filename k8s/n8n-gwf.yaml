@@ -1,0 +1,77 @@
+# ============================================================
+# GWF Wohnungsgenossenschaft eG — n8n
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-gwf
+  namespace: multi-org-rag
+  labels:
+    app: n8n-gwf
+    org: gwf
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: n8n-gwf
+  template:
+    metadata:
+      labels:
+        app: n8n-gwf
+        org: gwf
+    spec:
+      containers:
+        - name: n8n
+          image: n8nio/n8n:2.13.4
+          ports:
+            - containerPort: 5678
+          env:
+            - name: N8N_HOST
+              value: "gwf-stuttgart-automations.localhost"
+            - name: N8N_PORT
+              value: "5678"
+            - name: N8N_PROTOCOL
+              value: "http"
+            - name: N8N_EDITOR_BASE_URL
+              value: "http://gwf-stuttgart-automations.localhost"
+            - name: WEBHOOK_URL
+              value: "http://gwf-stuttgart-automations.localhost/"
+            - name: N8N_SECURE_COOKIE
+              value: "false"
+            - name: N8N_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: N8N_ENCRYPTION_KEY_ORG1
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: GENERIC_TIMEZONE
+              value: "Europe/Berlin"
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/.n8n
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: n8n-gwf-data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-gwf
+  namespace: multi-org-rag
+spec:
+  selector:
+    app: n8n-gwf
+  ports:
+    - port: 5678
+      targetPort: 5678

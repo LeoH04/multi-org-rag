@@ -1,0 +1,91 @@
+# ============================================================
+# Admin Monitor — Express.js metrics API (custom image)
+#
+# Build:
+#   docker build -t localhost:32000/admin-monitor:latest ./admin-monitor
+#   docker push localhost:32000/admin-monitor:latest
+# Then update the image below.
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-monitor
+  namespace: multi-org-rag
+  labels:
+    app: admin-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-monitor
+  template:
+    metadata:
+      labels:
+        app: admin-monitor
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo "Waiting for postgres..."; sleep 2; done']
+      containers:
+        - name: admin-monitor
+          image: localhost:32000/admin-monitor:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: POSTGRES_HOST
+              value: "postgres"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: POSTGRES_PASSWORD
+            - name: N8N_API_KEY_ORG1
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: N8N_API_KEY_ORG1
+            - name: N8N_API_KEY_ORG2
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: N8N_API_KEY_ORG2
+            - name: N8N_API_KEY_ORG3
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: N8N_API_KEY_ORG3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-monitor
+  namespace: multi-org-rag
+spec:
+  selector:
+    app: admin-monitor
+  ports:
+    - port: 3000
+      targetPort: 3000

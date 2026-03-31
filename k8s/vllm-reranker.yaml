@@ -1,0 +1,102 @@
+# ============================================================
+# vLLM Reranker — /v1/rerank API (GPU required)
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-reranker
+  namespace: multi-org-rag
+  labels:
+    app: vllm-reranker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vllm-reranker
+  template:
+    metadata:
+      labels:
+        app: vllm-reranker
+    spec:
+      containers:
+        - name: vllm-reranker
+          image: vllm/vllm-openai:latest
+          ports:
+            - containerPort: 8000
+          args:
+            - "--model"
+            - "$(VLLM_RERANK_MODEL)"
+            - "--task"
+            - "score"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8000"
+            - "--api-key"
+            - "$(RERANK_API_KEY)"
+          env:
+            - name: VLLM_RERANK_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: VLLM_RERANK_MODEL
+            - name: RERANK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: RERANK_API_KEY
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: HF_TOKEN
+          volumeMounts:
+            - name: cache
+              mountPath: /root/.cache/huggingface
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1"
+            limits:
+              nvidia.com/gpu: "1"
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'curl -sf -H "Authorization: Bearer $RERANK_API_KEY" http://localhost:8000/v1/models >/dev/null'
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 20
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'curl -sf -H "Authorization: Bearer $RERANK_API_KEY" http://localhost:8000/v1/models >/dev/null'
+            periodSeconds: 30
+            timeoutSeconds: 5
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: vllm-reranker-cache
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-reranker
+  namespace: multi-org-rag
+spec:
+  selector:
+    app: vllm-reranker
+  ports:
+    - port: 8000
+      targetPort: 8000
