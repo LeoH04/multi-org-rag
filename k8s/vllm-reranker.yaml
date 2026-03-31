@@ -26,10 +26,9 @@ spec:
           ports:
             - containerPort: 8000
           args:
-            - "--model"
             - "$(VLLM_RERANK_MODEL)"
-            - "--task"
-            - "score"
+            - "--runner"
+            - "pooling"
             - "--host"
             - "0.0.0.0"
             - "--port"
