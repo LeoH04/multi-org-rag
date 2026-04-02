@@ -38,8 +38,8 @@ limit_req_zone $binary_remote_addr zone=general:10m rate=100r/s;
 # Landing Page
 # ──────────────────────────────────────────────
 server {
-    listen 80 default_server;
-    server_name ${DOMAIN} localhost 127.0.0.1 _;
+    listen 80;
+    server_name ${DOMAIN} localhost;
 
     root /usr/share/nginx/html;
     index index.html;
