@@ -28,8 +28,8 @@ data:
     # Landing Page
     # ──────────────────────────────────────────────
     server {
-        listen 80;
-        server_name ${DOMAIN} localhost;
+        listen 80 default_server;
+        server_name ${DOMAIN} localhost 127.0.0.1 _;
 
         root /usr/share/nginx/html;
         index index.html;
@@ -39,6 +39,10 @@ data:
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
 
         location /api/admin/ {
             proxy_pass         http://admin-monitor:3000/api/admin/;
