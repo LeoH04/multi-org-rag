@@ -122,8 +122,25 @@
     const domain = window.location.hostname;
     const protocol = window.location.protocol;
 
+    function resolveBaseDomain(hostname) {
+      if (hostname === '127.0.0.1' || hostname === '[::1]' || hostname === 'localhost') {
+        return 'localhost';
+      }
+
+      if (hostname.endsWith('.localhost')) {
+        return 'localhost';
+      }
+
+      return hostname;
+    }
+
     function buildUrl(subdomain) {
-      return protocol + '//' + subdomain + '.' + domain;
+      const baseDomain = resolveBaseDomain(domain);
+      const host = baseDomain === 'localhost'
+        ? subdomain + '.localhost'
+        : subdomain + '.' + baseDomain;
+
+      return protocol + '//' + host;
     }
 
     document.title = org.name + ' - Admin Dashboard';

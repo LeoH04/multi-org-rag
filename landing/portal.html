@@ -75,9 +75,26 @@
     const protocol = window.location.protocol;
     const port = window.location.port;
 
+    function resolveBaseDomain(hostname) {
+      if (hostname === '127.0.0.1' || hostname === '[::1]' || hostname === 'localhost') {
+        return 'localhost';
+      }
+
+      if (hostname.endsWith('.localhost')) {
+        return 'localhost';
+      }
+
+      return hostname;
+    }
+
     function buildUrl(subdomain) {
+      const baseDomain = resolveBaseDomain(domain);
       const portSegment = port ? ':' + port : '';
-      return protocol + '//' + subdomain + '.' + domain + portSegment;
+      const host = baseDomain === 'localhost'
+        ? subdomain + '.localhost'
+        : subdomain + '.' + baseDomain;
+
+      return protocol + '//' + host + portSegment;
     }
 
     document.getElementById('portal-title').textContent = org.name + ' - Portal auswählen';
