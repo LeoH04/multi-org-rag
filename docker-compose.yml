@@ -119,10 +119,12 @@ services:
   # ──────────────────────────────────────────────
   vllm-reranker:
     image: vllm/vllm-openai:latest
+    entrypoint: ["vllm"]
     restart: unless-stopped
     ports:
       - "8001:8000"
     command:
+      - serve
       - ${VLLM_RERANK_MODEL}
       - --runner
       - pooling
