@@ -128,6 +128,8 @@ services:
       - ${VLLM_RERANK_MODEL}
       - --runner
       - pooling
+      - --gpu-memory-utilization
+      - ${VLLM_RERANK_GPU_MEMORY_UTILIZATION}
       - --host
       - 0.0.0.0
       - --port
