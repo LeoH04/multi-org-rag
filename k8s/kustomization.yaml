@@ -48,3 +48,171 @@ resources:
 
   # 8. Ingress (enabled for server deployment)
   - ingress.yaml
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.0.host
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG1_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.1.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.1.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG2_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.2.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.2.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG3_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.3.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.3.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG1_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.4.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.4.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG2_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.5.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.5.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG3_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.6.host
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.6.host
+        options:
+          delimiter: .
+          index: 1

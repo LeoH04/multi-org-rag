@@ -58,10 +58,20 @@ spec:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: TAVILY_API_KEY
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: DOMAIN
+            - name: ORG2_SUBDOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: ORG2_SUBDOMAIN
             - name: WEBUI_NAME
               value: "Inge Gräßle MdB Büro"
             - name: WEBUI_URL
-              value: "http://inge-graessle-mdb.localhost"
+              value: "http://$(ORG2_SUBDOMAIN).$(DOMAIN)"
             - name: WEBUI_SECRET_KEY
               valueFrom:
                 secretKeyRef:

@@ -64,11 +64,21 @@ spec:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: TAVILY_API_KEY
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: DOMAIN
+            - name: ORG1_SUBDOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: ORG1_SUBDOMAIN
             # Branding
             - name: WEBUI_NAME
               value: "GWF Wohnungsgenossenschaft eG"
             - name: WEBUI_URL
-              value: "http://gwf-stuttgart.localhost"
+              value: "http://$(ORG1_SUBDOMAIN).$(DOMAIN)"
             # Auth
             - name: WEBUI_SECRET_KEY
               valueFrom:

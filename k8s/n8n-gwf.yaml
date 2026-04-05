@@ -28,16 +28,26 @@ spec:
           ports:
             - containerPort: 5678
           env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: DOMAIN
+            - name: N8N_ORG1_SUBDOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: N8N_ORG1_SUBDOMAIN
             - name: N8N_HOST
-              value: "gwf-stuttgart-automations.localhost"
+              value: "$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL
               value: "http"
             - name: N8N_EDITOR_BASE_URL
-              value: "http://gwf-stuttgart-automations.localhost"
+              value: "http://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
             - name: WEBHOOK_URL
-              value: "http://gwf-stuttgart-automations.localhost/"
+              value: "http://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)/"
             - name: N8N_BASIC_AUTH_ACTIVE
               value: "true"
             - name: N8N_BASIC_AUTH_USER
