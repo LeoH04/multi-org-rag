@@ -227,13 +227,15 @@ async function fetchN8nMetrics(n8nBaseUrl) {
 
   if (metricsRes && metricsRes.ok) {
     const metricsText = await metricsRes.text();
+    const productionExecutions = getPrometheusMetricValue(metricsText, 'n8n_production_executions');
+    const manualExecutions = getPrometheusMetricValue(metricsText, 'n8n_manual_executions');
+
     activeWorkflows = getPrometheusMetricValue(metricsText, 'n8n_active_workflow_count');
-    executions24h = getPrometheusMetricValue(metricsText, 'n8n_production_executions');
-    failedExecutions24h = getPrometheusLabeledMetricValue(
-      metricsText,
-      'n8n_workflow_execution_duration_seconds_count',
-      { status: 'failed', mode: 'integrated' }
-    );
+    executions24h =
+      typeof productionExecutions === 'number' || typeof manualExecutions === 'number'
+        ? Number(productionExecutions || 0) + Number(manualExecutions || 0)
+        : null;
+    failedExecutions24h = getPrometheusMetricValue(metricsText, 'n8n_workflow_failed_total');
   }
 
   return {

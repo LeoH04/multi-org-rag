@@ -210,7 +210,7 @@
         ['Open WebUI', 'Chats', formatNumber(data.details.openwebui.chats), 'Tabellenbasierte Zählung'],
         ['Open WebUI', 'DB Größe', formatBytes(data.details.openwebui.dbSizeBytes), 'Aktuelle Datenbankgröße'],
         ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', n8nHint],
-        ['n8n', 'Produktive Ausführungen gesamt', data.details.n8n.executions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Ausführungen gesamt', data.details.n8n.executions24h ?? 'n/a', n8nHint],
         ['n8n', 'Fehlgeschlagene Ausführungen gesamt', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
         ['System', 'Gesamtstatus', data.health.combinedOk ? 'Stabil' : 'Eingeschränkt', 'Open WebUI + n8n Check']
       ];
