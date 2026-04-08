@@ -170,77 +170,45 @@ function n8nAuthHeader() {
   };
 }
 
+function getPrometheusMetricValue(metricsText, metricName) {
+  const escapedName = metricName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = metricsText.match(new RegExp('^' + escapedName + '\\s+([0-9.]+)$', 'm'));
+  return match ? Number(match[1]) : null;
+}
+
 async function fetchN8nMetrics(n8nBaseUrl) {
   const headers = {
-    Accept: 'application/json',
+    Accept: 'text/plain',
     ...n8nAuthHeader()
   };
 
-  const [workflowRes, executionRes] = await Promise.all([
-    fetch(new URL('/rest/workflows?limit=250', n8nBaseUrl), { headers }).catch(() => null),
-    fetch(new URL('/rest/executions?limit=100', n8nBaseUrl), { headers }).catch(() => null)
-  ]);
+  const metricsRes = await fetch(new URL('/metrics', n8nBaseUrl), { headers }).catch(() => null);
 
   let activeWorkflows = null;
   let executions24h = null;
   let failedExecutions24h = null;
 
-  const workflowStatusCode = workflowRes ? workflowRes.status : null;
-  const executionStatusCode = executionRes ? executionRes.status : null;
+  const workflowStatusCode = metricsRes ? metricsRes.status : null;
+  const executionStatusCode = metricsRes ? metricsRes.status : null;
 
-  const errors = [];
-  if (!workflowRes) {
-    errors.push('workflows endpoint unreachable');
-  } else if (!workflowRes.ok) {
-    errors.push('workflows endpoint HTTP ' + workflowRes.status);
-  }
-
-  if (!executionRes) {
-    errors.push('executions endpoint unreachable');
-  } else if (!executionRes.ok) {
-    errors.push('executions endpoint HTTP ' + executionRes.status);
-  }
-
-  if (workflowRes && workflowRes.ok) {
-    const workflowJson = await workflowRes.json();
-    const list = Array.isArray(workflowJson)
-      ? workflowJson
-      : Array.isArray(workflowJson.data)
-      ? workflowJson.data
-      : [];
-    activeWorkflows = list.filter((item) => item && item.active).length;
-  }
-
-  if (executionRes && executionRes.ok) {
-    const executionJson = await executionRes.json();
-    const list = Array.isArray(executionJson)
-      ? executionJson
-      : Array.isArray(executionJson.data)
-      ? executionJson.data
-      : [];
-
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    const recent = list.filter((item) => {
-      const dateValue = item?.startedAt || item?.stoppedAt || item?.createdAt;
-      return dateValue ? new Date(dateValue).getTime() >= cutoff : false;
-    });
-
-    executions24h = recent.length;
-    failedExecutions24h = recent.filter((item) => {
-      const status = String(item?.status || '').toLowerCase();
-      const finished = item?.finished === false ? false : true;
-      return status.includes('error') || (!finished && status !== 'running');
-    }).length;
+  if (metricsRes && metricsRes.ok) {
+    const metricsText = await metricsRes.text();
+    activeWorkflows = getPrometheusMetricValue(metricsText, 'n8n_active_workflow_count');
+    executions24h = getPrometheusMetricValue(metricsText, 'n8n_production_executions');
   }
 
   return {
     activeWorkflows,
     executions24h,
     failedExecutions24h,
-    metricsAvailable: Boolean(workflowRes?.ok && executionRes?.ok),
+    metricsAvailable: Boolean(metricsRes?.ok),
     workflowStatusCode,
     executionStatusCode,
-    apiError: errors.length > 0 ? errors.join('; ') : null
+    apiError: !metricsRes
+      ? 'metrics endpoint unreachable'
+      : !metricsRes.ok
+      ? 'metrics endpoint HTTP ' + metricsRes.status
+      : null
   };
 }
 
@@ -264,7 +232,9 @@ async function collectMetricsForOrg(orgKey, org) {
   ]);
 
   const failureRate =
-    typeof n8nMetrics.executions24h === 'number' && n8nMetrics.executions24h > 0
+    typeof n8nMetrics.executions24h === 'number' &&
+    typeof n8nMetrics.failedExecutions24h === 'number' &&
+    n8nMetrics.executions24h > 0
       ? toPercent(n8nMetrics.failedExecutions24h || 0, n8nMetrics.executions24h)
       : null;
 

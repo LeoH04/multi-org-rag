@@ -201,7 +201,7 @@
 
     function renderMetricsTable(data) {
       const n8nHint = data.details.n8n.metricsAvailable
-        ? 'REST API /rest/workflows und /rest/executions'
+        ? 'Prometheus /metrics'
         : 'Nicht verfügbar: ' + (data.details.n8n.apiError || 'Unbekannter Fehler');
 
       const rows = [
@@ -210,8 +210,8 @@
         ['Open WebUI', 'Chats', formatNumber(data.details.openwebui.chats), 'Tabellenbasierte Zählung'],
         ['Open WebUI', 'DB Größe', formatBytes(data.details.openwebui.dbSizeBytes), 'Aktuelle Datenbankgröße'],
         ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', n8nHint],
-        ['n8n', 'Ausführungen (24h)', data.details.n8n.executions24h ?? 'n/a', n8nHint],
-        ['n8n', 'Fehlgeschlagen (24h)', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Produktive Ausführungen', data.details.n8n.executions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Fehlgeschlagene Ausführungen', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
         ['System', 'Gesamtstatus', data.health.combinedOk ? 'Stabil' : 'Eingeschränkt', 'Open WebUI + n8n Check']
       ];
 
@@ -232,7 +232,7 @@
     function renderAudit(data) {
       const auditList = document.getElementById('audit-list');
       const failureRateText = data.kpis.workflowFailureRatePct == null
-        ? 'n/a (n8n Metriken nicht verfügbar)'
+        ? (data.details.n8n.metricsAvailable ? 'n/a' : 'n/a (n8n Metriken nicht verfügbar)')
         : Number(data.kpis.workflowFailureRatePct).toFixed(1) + '%';
       const entries = [
         formatTime(data.at) + ' - Monitoring Snapshot aktualisiert.',
@@ -260,8 +260,10 @@
       document.getElementById('kpi-failure').textContent = data.kpis.workflowFailureRatePct == null
         ? 'n/a'
         : Number(data.kpis.workflowFailureRatePct).toFixed(1) + '%';
-      document.getElementById('kpi-failure-delta').textContent = data.details.n8n.metricsAvailable
-        ? 'Fehlgeschlagene n8n Ausführungen (24h)'
+      document.getElementById('kpi-failure-delta').textContent = data.kpis.workflowFailureRatePct != null
+        ? 'Aus n8n Metriken berechnet'
+        : data.details.n8n.metricsAvailable
+        ? 'n8n liefert hier keine Fehlerquote'
         : 'n8n Metriken nicht verfügbar';
     }
 
