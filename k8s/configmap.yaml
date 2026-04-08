@@ -9,6 +9,8 @@ metadata:
 data:
   # Domain
   DOMAIN: "localhost"
+  PUBLIC_PROTOCOL: "http"
+  ACME_EMAIL: "change-me@example.com"
   POSTGRES_USER: "postgres"
 
   # Organization subdomains
@@ -20,6 +22,7 @@ data:
   N8N_ORG1_SUBDOMAIN: "gwf-stuttgart-automations"
   N8N_ORG2_SUBDOMAIN: "inge-graessle-mdb-automations"
   N8N_ORG3_SUBDOMAIN: "albert-schweitzer-kinderdorf-automations"
+  N8N_SECURE_COOKIE: "false"
 
   # vLLM model config
   VLLM_MODEL: "openai/gpt-oss-20b"

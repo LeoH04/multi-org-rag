@@ -33,6 +33,11 @@ spec:
                 configMapKeyRef:
                   name: multi-org-config
                   key: DOMAIN
+            - name: PUBLIC_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: PUBLIC_PROTOCOL
             - name: N8N_ORG1_SUBDOMAIN
               valueFrom:
                 configMapKeyRef:
@@ -43,11 +48,11 @@ spec:
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL
-              value: "http"
+              value: "$(PUBLIC_PROTOCOL)"
             - name: N8N_EDITOR_BASE_URL
-              value: "http://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
+              value: "$(PUBLIC_PROTOCOL)://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
             - name: WEBHOOK_URL
-              value: "http://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)/"
+              value: "$(PUBLIC_PROTOCOL)://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)/"
             - name: N8N_BASIC_AUTH_ACTIVE
               value: "true"
             - name: N8N_BASIC_AUTH_USER
@@ -61,7 +66,10 @@ spec:
                   name: multi-org-secrets
                   key: N8N_ADMIN_PASSWORD
             - name: N8N_SECURE_COOKIE
-              value: "false"
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: N8N_SECURE_COOKIE
             - name: N8N_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:

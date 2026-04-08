@@ -17,19 +17,19 @@
 #   1. Edit .env — set passwords, domain, and vLLM variables
 #   2. docker compose up -d
 #   3. Start vLLM services and wait for models to download on first boot
-#   4. Open http://localhost (or http://yourdomain.com)
+#   4. Open ${PUBLIC_PROTOCOL}://localhost (or ${PUBLIC_PROTOCOL}://yourdomain.com)
 #
 #   With DOMAIN=localhost (default):
-#     Landing page : http://localhost
-#     GWF          : http://${ORG1_SUBDOMAIN}.localhost
-#     Inge Graessle: http://${ORG2_SUBDOMAIN}.localhost
-#     ASK          : http://${ORG3_SUBDOMAIN}.localhost
+#     Landing page : ${PUBLIC_PROTOCOL}://localhost
+#     GWF          : ${PUBLIC_PROTOCOL}://${ORG1_SUBDOMAIN}.localhost
+#     Inge Graessle: ${PUBLIC_PROTOCOL}://${ORG2_SUBDOMAIN}.localhost
+#     ASK          : ${PUBLIC_PROTOCOL}://${ORG3_SUBDOMAIN}.localhost
 #
 #   With DOMAIN=yourdomain.com:
-#     Landing page : http://yourdomain.com
-#     GWF          : http://${ORG1_SUBDOMAIN}.yourdomain.com
-#     Inge Graessle: http://${ORG2_SUBDOMAIN}.yourdomain.com
-#     ASK          : http://${ORG3_SUBDOMAIN}.yourdomain.com
+#     Landing page : ${PUBLIC_PROTOCOL}://yourdomain.com
+#     GWF          : ${PUBLIC_PROTOCOL}://${ORG1_SUBDOMAIN}.yourdomain.com
+#     Inge Graessle: ${PUBLIC_PROTOCOL}://${ORG2_SUBDOMAIN}.yourdomain.com
+#     ASK          : ${PUBLIC_PROTOCOL}://${ORG3_SUBDOMAIN}.yourdomain.com
 # ============================================================
 
 services:
@@ -210,7 +210,7 @@ services:
 
       # --- Branding ---
       WEBUI_NAME: "GWF Wohnungs­genossenschaft eG"
-      WEBUI_URL: http://${ORG1_SUBDOMAIN}.${DOMAIN}
+      WEBUI_URL: ${PUBLIC_PROTOCOL}://${ORG1_SUBDOMAIN}.${DOMAIN}
 
       # --- Auth & admin ---
       WEBUI_SECRET_KEY: ${SECRET_KEY_GWF_STUTTGART}
@@ -283,7 +283,7 @@ services:
 
       # --- Branding ---
       WEBUI_NAME: "Inge Gräßle MdB Büro"
-      WEBUI_URL: http://${ORG2_SUBDOMAIN}.${DOMAIN}
+      WEBUI_URL: ${PUBLIC_PROTOCOL}://${ORG2_SUBDOMAIN}.${DOMAIN}
 
       # --- Auth & admin ---
       WEBUI_SECRET_KEY: ${SECRET_KEY_INGE_GRAESSLE_MDB}
@@ -356,7 +356,7 @@ services:
 
       # --- Branding ---
       WEBUI_NAME: "Albert-Schweitzer-Kinderdorf"
-      WEBUI_URL: http://${ORG3_SUBDOMAIN}.${DOMAIN}
+      WEBUI_URL: ${PUBLIC_PROTOCOL}://${ORG3_SUBDOMAIN}.${DOMAIN}
 
       # --- Auth & admin ---
       WEBUI_SECRET_KEY: ${SECRET_KEY_ALBERT_SCHWEITZER_KINDERDORF}
@@ -387,15 +387,15 @@ services:
     environment:
       N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
-      N8N_PROTOCOL: http
+      N8N_PROTOCOL: ${PUBLIC_PROTOCOL}
       N8N_PROXY_HOPS: 1
       N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
+      N8N_EDITOR_BASE_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
       N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
       N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
-      N8N_SECURE_COOKIE: "false"
+      N8N_SECURE_COOKIE: "${N8N_SECURE_COOKIE}"
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG1}
       TZ: Europe/Berlin
       GENERIC_TIMEZONE: Europe/Berlin
@@ -413,15 +413,15 @@ services:
     environment:
       N8N_HOST: ${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
-      N8N_PROTOCOL: http
+      N8N_PROTOCOL: ${PUBLIC_PROTOCOL}
       N8N_PROXY_HOPS: 1
       N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}/
+      N8N_EDITOR_BASE_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
       N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
       N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
-      N8N_SECURE_COOKIE: "false"
+      N8N_SECURE_COOKIE: "${N8N_SECURE_COOKIE}"
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG2}
       TZ: Europe/Berlin
       GENERIC_TIMEZONE: Europe/Berlin
@@ -439,15 +439,15 @@ services:
     environment:
       N8N_HOST: ${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
-      N8N_PROTOCOL: http
+      N8N_PROTOCOL: ${PUBLIC_PROTOCOL}
       N8N_PROXY_HOPS: 1
       N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}/
+      N8N_EDITOR_BASE_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: ${PUBLIC_PROTOCOL}://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
       N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
       N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
-      N8N_SECURE_COOKIE: "false"
+      N8N_SECURE_COOKIE: "${N8N_SECURE_COOKIE}"
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG3}
       TZ: Europe/Berlin
       GENERIC_TIMEZONE: Europe/Berlin
@@ -494,19 +494,38 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     environment:
       - DOMAIN=${DOMAIN}
+      - PUBLIC_PROTOCOL=${PUBLIC_PROTOCOL}
       - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
       - ORG2_SUBDOMAIN=${ORG2_SUBDOMAIN}
       - ORG3_SUBDOMAIN=${ORG3_SUBDOMAIN}
       - N8N_ORG1_SUBDOMAIN=${N8N_ORG1_SUBDOMAIN}
       - N8N_ORG2_SUBDOMAIN=${N8N_ORG2_SUBDOMAIN}
       - N8N_ORG3_SUBDOMAIN=${N8N_ORG3_SUBDOMAIN}
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        if [ "$${PUBLIC_PROTOCOL}" = "https" ]; then
+          test -f /etc/nginx/certs/fullchain.pem
+          test -f /etc/nginx/certs/privkey.pem
+          TEMPLATE=/etc/nginx/templates/default-https.conf.template
+        else
+          TEMPLATE=/etc/nginx/templates/default-http.conf.template
+        fi
+        envsubst '$${DOMAIN} $${ORG1_SUBDOMAIN} $${ORG2_SUBDOMAIN} $${ORG3_SUBDOMAIN} $${N8N_ORG1_SUBDOMAIN} $${N8N_ORG2_SUBDOMAIN} $${N8N_ORG3_SUBDOMAIN}' < "$${TEMPLATE}" > /etc/nginx/conf.d/default.conf
+        exec nginx -g 'daemon off;'
     volumes:
-      # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
-      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      # Nginx config templates — selected on startup based on PUBLIC_PROTOCOL
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default-http.conf.template:ro
+      - ./nginx/nginx.https.conf.template:/etc/nginx/templates/default-https.conf.template:ro
       # Landing page
       - ./landing:/usr/share/nginx/html:ro
+      # Optional TLS certs for PUBLIC_PROTOCOL=https
+      - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - admin-monitor
       - openwebui-gwf

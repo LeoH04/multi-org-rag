@@ -1,0 +1,221 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: multi-org-rag
+
+resources:
+  - ../../namespace.yaml
+  - ../../configmap.yaml
+  - ../../secret.yaml
+  - ../../configmap-initdb.yaml
+  - ../../configmap-nginx.yaml
+  - ../../pvc.yaml
+  - ../../postgres.yaml
+  - ../../tika.yaml
+  - ../../vllm-chat.yaml
+  - ../../vllm-reranker.yaml
+  - ../../openwebui-gwf.yaml
+  - ../../openwebui-inge-graessle.yaml
+  - ../../openwebui-ask.yaml
+  - ../../n8n-gwf.yaml
+  - ../../n8n-inge-graessle.yaml
+  - ../../n8n-ask.yaml
+  - ../../admin-monitor.yaml
+  - ../../nginx-landing.yaml
+  - ../../backup-cronjob.yaml
+  - ../../ingress.yaml
+  - clusterissuer.yaml
+
+patches:
+  - path: patch-configmap.yaml
+  - path: patch-ingress.yaml
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.0.host
+          - spec.tls.0.hosts.0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG1_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.1.host
+          - spec.tls.0.hosts.1
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.1.host
+          - spec.tls.0.hosts.1
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG2_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.2.host
+          - spec.tls.0.hosts.2
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.2.host
+          - spec.tls.0.hosts.2
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ORG3_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.3.host
+          - spec.tls.0.hosts.3
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.3.host
+          - spec.tls.0.hosts.3
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG1_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.4.host
+          - spec.tls.0.hosts.4
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.4.host
+          - spec.tls.0.hosts.4
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG2_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.5.host
+          - spec.tls.0.hosts.5
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.5.host
+          - spec.tls.0.hosts.5
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.N8N_ORG3_SUBDOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.6.host
+          - spec.tls.0.hosts.6
+        options:
+          delimiter: .
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: multi-org-rag
+        fieldPaths:
+          - spec.rules.6.host
+          - spec.tls.0.hosts.6
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: multi-org-config
+      fieldPath: data.ACME_EMAIL
+    targets:
+      - select:
+          kind: ClusterIssuer
+          name: letsencrypt-prod
+        fieldPaths:
+          - spec.acme.email
