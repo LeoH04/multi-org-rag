@@ -176,6 +176,40 @@ function getPrometheusMetricValue(metricsText, metricName) {
   return match ? Number(match[1]) : null;
 }
 
+function getPrometheusLabeledMetricValue(metricsText, metricName, expectedLabels) {
+  const lines = metricsText.split('\n');
+
+  for (const line of lines) {
+    if (!line.startsWith(metricName + '{')) {
+      continue;
+    }
+
+    const match = line.match(/^([^{]+)\{([^}]*)\}\s+([0-9.]+)$/);
+    if (!match) {
+      continue;
+    }
+
+    const labelPairs = match[2]
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const pairMatch = part.match(/^([^=]+)="(.*)"$/);
+        return pairMatch ? [pairMatch[1], pairMatch[2]] : null;
+      })
+      .filter(Boolean);
+
+    const labels = Object.fromEntries(labelPairs);
+    const matches = Object.entries(expectedLabels).every(([key, value]) => labels[key] === value);
+
+    if (matches) {
+      return Number(match[3]);
+    }
+  }
+
+  return null;
+}
+
 async function fetchN8nMetrics(n8nBaseUrl) {
   const headers = {
     Accept: 'text/plain',
@@ -195,6 +229,11 @@ async function fetchN8nMetrics(n8nBaseUrl) {
     const metricsText = await metricsRes.text();
     activeWorkflows = getPrometheusMetricValue(metricsText, 'n8n_active_workflow_count');
     executions24h = getPrometheusMetricValue(metricsText, 'n8n_production_executions');
+    failedExecutions24h = getPrometheusLabeledMetricValue(
+      metricsText,
+      'n8n_workflow_execution_duration_seconds_count',
+      { status: 'failed', mode: 'integrated' }
+    );
   }
 
   return {

@@ -210,8 +210,8 @@
         ['Open WebUI', 'Chats', formatNumber(data.details.openwebui.chats), 'Tabellenbasierte Zählung'],
         ['Open WebUI', 'DB Größe', formatBytes(data.details.openwebui.dbSizeBytes), 'Aktuelle Datenbankgröße'],
         ['n8n', 'Aktive Workflows', data.details.n8n.activeWorkflows ?? 'n/a', n8nHint],
-        ['n8n', 'Produktive Ausführungen', data.details.n8n.executions24h ?? 'n/a', n8nHint],
-        ['n8n', 'Fehlgeschlagene Ausführungen', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Produktive Ausführungen gesamt', data.details.n8n.executions24h ?? 'n/a', n8nHint],
+        ['n8n', 'Fehlgeschlagene Ausführungen gesamt', data.details.n8n.failedExecutions24h ?? 'n/a', n8nHint],
         ['System', 'Gesamtstatus', data.health.combinedOk ? 'Stabil' : 'Eingeschränkt', 'Open WebUI + n8n Check']
       ];
 
@@ -238,7 +238,7 @@
         formatTime(data.at) + ' - Monitoring Snapshot aktualisiert.',
         formatTime(data.at) + ' - Open WebUI Status: ' + (data.health.openwebui.ok ? 'Online' : 'Warnung') + ' (' + (data.health.openwebui.latencyMs ?? 'n/a') + ' ms).',
         formatTime(data.at) + ' - n8n Status: ' + (data.health.n8n.ok ? 'Online' : 'Warnung') + ' (' + (data.health.n8n.latencyMs ?? 'n/a') + ' ms).',
-        formatTime(data.at) + ' - Workflow Fehlerquote 24h: ' + failureRateText + '.',
+        formatTime(data.at) + ' - Workflow Fehlerquote gesamt: ' + failureRateText + '.',
         formatTime(data.at) + ' - Dokumente indexiert: ' + formatNumber(data.kpis.indexedDocuments) + '.'
       ];
 
