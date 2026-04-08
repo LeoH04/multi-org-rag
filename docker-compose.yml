@@ -504,7 +504,7 @@ services:
       - N8N_ORG3_SUBDOMAIN=${N8N_ORG3_SUBDOMAIN}
     volumes:
       # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
-      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./k8s/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       # Landing page
       - ./landing:/usr/share/nginx/html:ro
     depends_on:

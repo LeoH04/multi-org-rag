@@ -1,36 +1,23 @@
-# ============================================================
-# Shared non-sensitive configuration
-# ============================================================
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: multi-org-config
   namespace: multi-org-rag
 data:
-  # Domain
   DOMAIN: "localhost"
-  POSTGRES_USER: "postgres"
-
-  # Organization subdomains
   ORG1_SUBDOMAIN: "gwf-stuttgart"
   ORG2_SUBDOMAIN: "inge-graessle-mdb"
   ORG3_SUBDOMAIN: "albert-schweitzer-kinderdorf"
-
-  # n8n subdomains
   N8N_ORG1_SUBDOMAIN: "gwf-stuttgart-automations"
   N8N_ORG2_SUBDOMAIN: "inge-graessle-mdb-automations"
   N8N_ORG3_SUBDOMAIN: "albert-schweitzer-kinderdorf-automations"
-
-  # vLLM model config
   VLLM_MODEL: "openai/gpt-oss-20b"
   VLLM_MODEL_NAME: "gpt-oss-20b"
   VLLM_MAX_MODEL_LEN: "131072"
   VLLM_RERANK_MODEL: "BAAI/bge-reranker-v2-m3"
+  POSTGRES_USER: "postgres"
 
 ---
-# ============================================================
-# Shared Open WebUI environment (injected via envFrom)
-# ============================================================
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -40,43 +27,43 @@ data:
   VECTOR_DB: "pgvector"
   ENABLE_OPENAI_API: "true"
   OPENAI_API_BASE_URLS: "http://vllm-chat:8000/v1"
-
-  # Embedding
   RAG_EMBEDDING_ENGINE: ""
   RAG_EMBEDDING_MODEL: "intfloat/multilingual-e5-large-instruct"
-
-  # RAG chunking
+  ENABLE_WEB_SEARCH: "true"
+  WEB_SEARCH_ENGINE: "tavily"
+  WEB_LOADER_ENGINE: "safe_web"
   RAG_TEXT_SPLITTER: "token"
   TIKTOKEN_ENCODING_NAME: "cl100k_base"
   CHUNK_SIZE: "1400"
   CHUNK_OVERLAP: "200"
-
-  # RAG retrieval
   RAG_TOP_K: "6"
   RAG_TOP_K_RERANKER: "3"
   RAG_RELEVANCE_THRESHOLD: "0.1"
   RAG_HYBRID_BM25_WEIGHT: "0.4"
   ENABLE_RAG_HYBRID_SEARCH: "true"
   ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS: "false"
-
-  # External reranker (vLLM)
   RAG_RERANKING_ENGINE: "external"
   RAG_RERANKING_MODEL: "BAAI/bge-reranker-v2-m3"
   RAG_EXTERNAL_RERANKER_URL: "http://vllm-reranker:8000/v1/rerank"
   RAG_EXTERNAL_RERANKER_TIMEOUT: "10"
-
-  # Web search
-  ENABLE_WEB_SEARCH: "true"
-  WEB_SEARCH_ENGINE: "tavily"
-  WEB_LOADER_ENGINE: "safe_web"
   WEB_SEARCH_RESULT_COUNT: "5"
-
-  # Document extraction (shared Tika)
   CONTENT_EXTRACTION_ENGINE: "tika"
   TIKA_SERVER_URL: "http://tika:9998"
-
-  # Auth defaults
   DEFAULT_LOCALE: "de"
   DEFAULT_USER_ROLE: "pending"
   ENABLE_API_KEYS: "true"
   RESET_CONFIG_ON_START: "false"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: n8n-shared-config
+  namespace: multi-org-rag
+data:
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: "http"
+  N8N_BASIC_AUTH_ACTIVE: "true"
+  N8N_SECURE_COOKIE: "false"
+  TZ: "Europe/Berlin"
+  GENERIC_TIMEZONE: "Europe/Berlin"

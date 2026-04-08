@@ -98,19 +98,13 @@
   <script>
     const orgConfig = {
       gwf: {
-        name: 'GWF Wohnungsgenossenschaft eG',
-        webuiSubdomain: 'gwf-stuttgart',
-        n8nSubdomain: 'gwf-stuttgart-automations'
+        name: 'GWF Wohnungsgenossenschaft eG'
       },
       'inge-graessle': {
-        name: 'Inge Gräßle MdB Büro',
-        webuiSubdomain: 'inge-graessle-mdb',
-        n8nSubdomain: 'inge-graessle-mdb-automations'
+        name: 'Inge Gräßle MdB Büro'
       },
       ask: {
-        name: 'Albert-Schweitzer-Kinderdorf',
-        webuiSubdomain: 'albert-schweitzer-kinderdorf',
-        n8nSubdomain: 'albert-schweitzer-kinderdorf-automations'
+        name: 'Albert-Schweitzer-Kinderdorf'
       }
     };
 
@@ -118,30 +112,6 @@
     const requestedOrg = params.get('org');
     const orgKey = orgConfig[requestedOrg] ? requestedOrg : 'gwf';
     const org = orgConfig[orgKey];
-
-    const domain = window.location.hostname;
-    const protocol = window.location.protocol;
-
-    function resolveBaseDomain(hostname) {
-      if (hostname === '127.0.0.1' || hostname === '[::1]' || hostname === 'localhost') {
-        return 'localhost';
-      }
-
-      if (hostname.endsWith('.localhost')) {
-        return 'localhost';
-      }
-
-      return hostname;
-    }
-
-    function buildUrl(subdomain) {
-      const baseDomain = resolveBaseDomain(domain);
-      const host = baseDomain === 'localhost'
-        ? subdomain + '.localhost'
-        : subdomain + '.' + baseDomain;
-
-      return protocol + '//' + host;
-    }
 
     document.title = org.name + ' - Admin Dashboard';
     document.getElementById('admin-title').textContent = org.name + ' - Admin Dashboard';

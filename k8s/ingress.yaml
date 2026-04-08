@@ -1,15 +1,6 @@
 # ============================================================
-# OPTIONAL — Kubernetes Ingress (alternative to nginx-landing)
-#
-# Use this INSTEAD of the nginx-landing LoadBalancer Service
-# if your cluster has an Ingress controller (e.g. ingress-nginx).
-#
-# If using this, you can simplify the nginx-landing deployment
-# to only serve static files, and let the Ingress handle
-# subdomain routing directly to backend Services.
-#
-# This file is NOT included in kustomization.yaml by default.
-# To enable: uncomment the ingress.yaml line in kustomization.yaml.
+# Kubernetes Ingress for multi-org routing.
+# Included by default in k8s/kustomization.yaml.
 # ============================================================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
