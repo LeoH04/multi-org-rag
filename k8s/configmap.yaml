@@ -27,6 +27,7 @@ data:
   VECTOR_DB: "pgvector"
   ENABLE_OPENAI_API: "true"
   OPENAI_API_BASE_URLS: "http://vllm-chat:8000/v1"
+  DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
   RAG_EMBEDDING_ENGINE: ""
   RAG_EMBEDDING_MODEL: "intfloat/multilingual-e5-large-instruct"
   ENABLE_WEB_SEARCH: "true"

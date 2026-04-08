@@ -179,6 +179,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
       OPENAI_API_KEYS: ${VLLM_API_KEY}
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
@@ -252,6 +253,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
       OPENAI_API_KEYS: ${VLLM_API_KEY}
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
@@ -325,6 +327,7 @@ services:
       # --- LLM backend (shared vLLM service) ---
       ENABLE_OPENAI_API: "true"
       OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
       OPENAI_API_KEYS: ${VLLM_API_KEY}
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
