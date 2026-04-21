@@ -1,0 +1,154 @@
+\documentclass{beamer}
+
+\usetheme{Madrid}
+
+\setbeamercolor{normal text}{fg=white,bg=black}
+\setbeamercolor{structure}{fg=white}
+\setbeamercolor{frametitle}{fg=white,bg=black}
+\setbeamercolor{title}{fg=white}
+
+\title{How to Host an LLM for Sensitive Data}
+\author{Leonard Hegemann \\ (B.Sc. Digital Business Management)}
+\institute{Universität Hohenheim}
+\date{22.04.2026}
+
+\begin{document}
+
+\frame{\titlepage}
+
+%------------------------------------------------
+
+\begin{frame}{Problem with Sensitive Data}
+\begin{itemize}
+    \item Handling sensitive data securely is challenging
+    \item External APIs may expose confidential information
+    \item Compliance and data protection requirements (e.g. GDPR)
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Solution: Self Hosting}
+\begin{itemize}
+    \item Full control over data and infrastructure
+    \item No data leaves the organization
+    \item Customizable and scalable setup
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: Architecture Overview}
+\begin{itemize}
+    \item Multiple services working together
+    \item Containerized and orchestrated infrastructure
+    \item Focus on performance, privacy, and extensibility
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: NGINX}
+\begin{itemize}
+    \item Serves static landing page
+    \item Acts as reverse proxy to route traffic
+    \item Maps subdomains to organization-specific services
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: Open WebUI}
+\begin{itemize}
+    \item Acts as frontend
+    \item Users can chat with their data (RAG)
+    \item Trigger N8N workflows via tools
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: vLLM}
+\begin{itemize}
+    \item Runs chat model (e.g., GPT-OSS 20B) and reranker
+    \item OpenAI-compatible API
+    \item High-performance:
+    \begin{itemize}
+        \item PagedAttention
+        \item Continuous batching
+        \item Quantization
+    \end{itemize}
+    \item Supports models from Hugging Face
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: PostgreSQL}
+\begin{itemize}
+    \item Persistent storage for:
+    \begin{itemize}
+        \item User data (email, password)
+        \item Chat history
+        \item API keys
+        \item Embeddings for RAG
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: n8n}
+\begin{itemize}
+    \item No-code / low-code workflow automation
+    \item Triggered via Open WebUI webhooks
+    \item Integrates with third-party tools:
+    \begin{itemize}
+        \item WhatsApp
+        \item Telegram
+        \item Microsoft Teams
+        \item Outlook
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: Docker}
+\begin{itemize}
+    \item Packages services into containers
+    \item Ensures portability
+    \item Simplifies deployment
+    \item Managed via \texttt{docker-compose.yaml}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Self Hosting: Kubernetes}
+\begin{itemize}
+    \item Orchestrates containers (pods)
+    \item Automatically restarts failed services
+    \item Enables zero-downtime updates
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}{Requirements / Demo}
+\begin{itemize}
+    \item Infrastructure setup
+    \item GPU resources for LLMs
+    \item Secure networking
+    \item Live demonstration
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\centering
+\Huge Thank You!
+\end{frame}
+
+\end{document}
