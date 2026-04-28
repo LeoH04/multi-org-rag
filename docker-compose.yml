@@ -64,92 +64,92 @@ services:
       - backend
 
     # ──────────────────────────────────────────────
-  # Shared vLLM Chat API (OpenAI-compatible)
+  # Shared vLLM Chat API (OpenAI-compatible) — CURRENTLY DISABLED
   # ──────────────────────────────────────────────
-  vllm-chat:
-    image: vllm/vllm-openai:latest
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    command:
-      - --model
-      - ${VLLM_MODEL}
-      - --served-model-name
-      - ${VLLM_MODEL_NAME}
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8000"
-      - --api-key
-      - ${VLLM_API_KEY}
-      - --gpu-memory-utilization
-      - "0.90"
-      - --max-model-len
-      - ${VLLM_MAX_MODEL_LEN}
-    environment:
-      HF_TOKEN: ${HF_TOKEN:-}
-      NVIDIA_VISIBLE_DEVICES: ${VLLM_CHAT_VISIBLE_DEVICES}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids:
-                  - "${VLLM_CHAT_VISIBLE_DEVICES}"
-              capabilities: [gpu]
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    volumes:
-      - vllm_cache:/root/.cache/huggingface
-    networks:
-      - backend
+  # vllm-chat:
+  #   image: vllm/vllm-openai:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   command:
+  #     - --model
+  #     - ${VLLM_MODEL}
+  #     - --served-model-name
+  #     - ${VLLM_MODEL_NAME}
+  #     - --host
+  #     - 0.0.0.0
+  #     - --port
+  #     - "8000"
+  #     - --api-key
+  #     - ${VLLM_API_KEY}
+  #     - --gpu-memory-utilization
+  #     - "0.90"
+  #     - --max-model-len
+  #     - ${VLLM_MAX_MODEL_LEN}
+  #   environment:
+  #     HF_TOKEN: ${HF_TOKEN:-}
+  #     NVIDIA_VISIBLE_DEVICES: ${VLLM_CHAT_VISIBLE_DEVICES}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids:
+  #                 - "${VLLM_CHAT_VISIBLE_DEVICES}"
+  #             capabilities: [gpu]
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+  #   volumes:
+  #     - vllm_cache:/root/.cache/huggingface
+  #   networks:
+  #     - backend
 
   # ──────────────────────────────────────────────
-  # Shared vLLM Reranker API (OpenAI-compatible /v1/rerank)
+  # Shared vLLM Reranker API (OpenAI-compatible /v1/rerank) — CURRENTLY DISABLED
   # ──────────────────────────────────────────────
-  vllm-reranker:
-    image: vllm/vllm-openai:latest
-    entrypoint: ["vllm"]
-    restart: unless-stopped
-    ports:
-      - "8001:8000"
-    command:
-      - serve
-      - ${VLLM_RERANK_MODEL}
-      - --runner
-      - pooling
-      - --gpu-memory-utilization
-      - ${VLLM_RERANK_GPU_MEMORY_UTILIZATION}
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8000"
-      - --api-key
-      - ${RERANK_API_KEY}
-    environment:
-      HF_TOKEN: ${HF_TOKEN:-}
-      NVIDIA_VISIBLE_DEVICES: ${VLLM_RERANK_VISIBLE_DEVICES}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids:
-                  - "${VLLM_RERANK_VISIBLE_DEVICES}"
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf -H \"Authorization: Bearer ${RERANK_API_KEY}\" http://localhost:8000/v1/models >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    volumes:
-      - vllm_cache:/root/.cache/huggingface
-    networks:
-      - backend
+  # vllm-reranker:
+  #   image: vllm/vllm-openai:latest
+  #   entrypoint: ["vllm"]
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8001:8000"
+  #   command:
+  #     - serve
+  #     - ${VLLM_RERANK_MODEL}
+  #     - --runner
+  #     - pooling
+  #     - --gpu-memory-utilization
+  #     - ${VLLM_RERANK_GPU_MEMORY_UTILIZATION}
+  #     - --host
+  #     - 0.0.0.0
+  #     - --port
+  #     - "8000"
+  #     - --api-key
+  #     - ${RERANK_API_KEY}
+  #   environment:
+  #     HF_TOKEN: ${HF_TOKEN:-}
+  #     NVIDIA_VISIBLE_DEVICES: ${VLLM_RERANK_VISIBLE_DEVICES}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids:
+  #                 - "${VLLM_RERANK_VISIBLE_DEVICES}"
+  #             capabilities: [gpu]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -sf -H \"Authorization: Bearer ${RERANK_API_KEY}\" http://localhost:8000/v1/models >/dev/null || exit 1"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 30s
+  #   volumes:
+  #     - vllm_cache:/root/.cache/huggingface
+  #   networks:
+  #     - backend
 
   # ──────────────────────────────────────────────
   # AIDAHO Copilot — Open WebUI
@@ -169,12 +169,12 @@ services:
       VECTOR_DB: pgvector
       # PGVECTOR_DB_URL defaults to DATABASE_URL — no need to set separately
 
-      # --- LLM backend (shared vLLM service) ---
+      # --- LLM backend (NVIDIA hosted API) ---
       ENABLE_OPENAI_API: "true"
-      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
+      OPENAI_API_BASE_URLS: ${NVIDIA_API_BASE_URL}
       DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
-      OPENAI_API_KEYS: ${VLLM_API_KEY}
-      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
+      OPENAI_API_KEYS: ${NVIDIA_API_KEY}
+      DEFAULT_MODELS: ${NVIDIA_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
@@ -190,11 +190,11 @@ services:
       RAG_HYBRID_BM25_WEIGHT: ${RAG_HYBRID_BM25_WEIGHT}
       ENABLE_RAG_HYBRID_SEARCH: ${ENABLE_RAG_HYBRID_SEARCH}
       ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS: ${ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS}
-      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE}
-      RAG_RERANKING_MODEL: ${RAG_RERANKING_MODEL}
-      RAG_EXTERNAL_RERANKER_URL: http://vllm-reranker:8000/v1/rerank
-      RAG_EXTERNAL_RERANKER_API_KEY: ${RERANK_API_KEY}
-      RAG_EXTERNAL_RERANKER_TIMEOUT: ${RAG_EXTERNAL_RERANKER_TIMEOUT}
+      RAG_RERANKING_ENGINE: ""
+      RAG_RERANKING_MODEL: ""
+      # RAG_EXTERNAL_RERANKER_URL: http://vllm-reranker:8000/v1/rerank
+      # RAG_EXTERNAL_RERANKER_API_KEY: ${RERANK_API_KEY}
+      # RAG_EXTERNAL_RERANKER_TIMEOUT: ${RAG_EXTERNAL_RERANKER_TIMEOUT}
       TAVILY_API_KEY: ${TAVILY_API_KEY}
       WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT}
 
