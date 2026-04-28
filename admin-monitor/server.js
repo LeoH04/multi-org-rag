@@ -7,23 +7,11 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 
 const orgs = {
-  gwf: {
-    name: 'GWF Wohnungsgenossenschaft eG',
-    dbName: 'openwebui_gwf',
-    openwebuiUrl: 'http://openwebui-gwf:8080/',
-    n8nUrl: 'http://n8n-gwf:5678/'
-  },
-  'inge-graessle': {
-    name: 'Inge Gräßle MdB Büro',
-    dbName: 'openwebui_ig_mdb',
-    openwebuiUrl: 'http://openwebui-inge-graessle:8080/',
-    n8nUrl: 'http://n8n-inge-graessle:5678/'
-  },
-  ask: {
-    name: 'Albert-Schweitzer-Kinderdorf',
-    dbName: 'openwebui_ask',
-    openwebuiUrl: 'http://openwebui-ask:8080/',
-    n8nUrl: 'http://n8n-ask:5678/'
+  aidaho: {
+    name: 'AIDAHO Copilot',
+    dbName: 'openwebui_aidaho',
+    openwebuiUrl: 'http://openwebui-aidaho:8080/',
+    n8nUrl: 'http://n8n-aidaho:5678/'
   }
 };
 
@@ -37,7 +25,7 @@ const n8nPassword = process.env.N8N_ADMIN_PASSWORD;
 
 function getOrgFromRequest(orgKey) {
   if (orgKey == null || orgKey === '') {
-    return { key: 'gwf', config: orgs.gwf, invalid: false };
+    return { key: 'aidaho', config: orgs.aidaho, invalid: false };
   }
   if (orgs[orgKey]) {
     return { key: orgKey, config: orgs[orgKey], invalid: false };

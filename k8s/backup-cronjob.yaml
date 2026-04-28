@@ -38,11 +38,9 @@ spec:
                 - -c
                 - |
                   echo "[$(date -Iseconds)] Starting backup..."
-                  for db in openwebui_gwf openwebui_ig_mdb openwebui_ask; do
-                    pg_dump -h postgres -U "$POSTGRES_USER" -d "$db" \
-                      | gzip > "/backups/${db}_$(date +%Y%m%d_%H%M%S).sql.gz"
-                    echo "[$(date -Iseconds)] Backed up $db"
-                  done
+                  pg_dump -h postgres -U "$POSTGRES_USER" -d openwebui_aidaho \
+                    | gzip > "/backups/openwebui_aidaho_$(date +%Y%m%d_%H%M%S).sql.gz"
+                  echo "[$(date -Iseconds)] Backed up openwebui_aidaho"
                   find /backups -name "*.sql.gz" -mtime +7 -delete
                   echo "[$(date -Iseconds)] Backup complete. Old backups cleaned."
               volumeMounts:

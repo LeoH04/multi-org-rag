@@ -3,21 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>AIDAHO Monitoring</title>
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
-<body>
-  <div class="container admin-container">
-    <div class="admin-top">
+<body class="monitoring-page">
+  <main class="monitoring-shell">
+    <header class="landing-top" aria-label="Universitaet Hohenheim">
+      <a class="brand-lockup" href="./index.html" aria-label="AIDAHO Copilot Startseite">
+        <img class="hohenheim-logo" src="./assets/hohenheim_logo.png" alt="Universität Hohenheim">
+        <span class="brand-text">
+          <span class="brand-unit">Universität Hohenheim</span>
+          <span class="brand-service">AIDAHO</span>
+        </span>
+      </a>
+      <nav class="monitor-nav" aria-label="Monitoring Navigation">
+        <a class="monitor-link" href="./admin-all.html">Übersicht</a>
+        <a class="monitor-link" href="./index.html">Startseite</a>
+      </nav>
+    </header>
+
+    <section class="monitoring-hero">
       <div>
-        <div class="eyebrow">Adminbereich</div>
-        <h1 id="admin-title">Admin Dashboard</h1>
-        <p class="subtitle" id="admin-subtitle">Überwachung und Steuerung Ihrer KI-Plattform.</p>
+        <p class="eyebrow">Monitoring</p>
+        <h1 id="admin-title">AIDAHO Monitoring</h1>
+        <p class="subtitle" id="admin-subtitle">Überwachung der KI-Plattform für AIDAHO Copilot.</p>
       </div>
-    </div>
+    </section>
 
     <section class="admin-kpis" aria-label="Kennzahlen">
       <article class="admin-kpi-card">
@@ -89,32 +100,29 @@
     </section>
 
     <div class="admin-footer-actions">
-      <a class="chooser-back" href="./admin-all.html">Zurück zum Globalen Dashboard</a>
+      <a class="chooser-back" href="./admin-all.html">Zurück zum Monitoring</a>
     </div>
 
-    <p class="footer">Liveansicht: Kennzahlen werden aus den laufenden Open WebUI-, n8n- und PostgreSQL-Instanzen gesammelt.</p>
-  </div>
+    <footer class="landing-footer">
+      <span>Liveansicht: Kennzahlen werden aus Open WebUI, n8n und PostgreSQL gesammelt.</span>
+      <span>Auto-Refresh alle 20 Sekunden</span>
+    </footer>
+  </main>
 
   <script>
     const orgConfig = {
-      gwf: {
-        name: 'GWF Wohnungsgenossenschaft eG'
-      },
-      'inge-graessle': {
-        name: 'Inge Gräßle MdB Büro'
-      },
-      ask: {
-        name: 'Albert-Schweitzer-Kinderdorf'
+      aidaho: {
+        name: 'AIDAHO Copilot'
       }
     };
 
     const params = new URLSearchParams(window.location.search);
     const requestedOrg = params.get('org');
-    const orgKey = orgConfig[requestedOrg] ? requestedOrg : 'gwf';
+    const orgKey = orgConfig[requestedOrg] ? requestedOrg : 'aidaho';
     const org = orgConfig[orgKey];
 
-    document.title = org.name + ' - Admin Dashboard';
-    document.getElementById('admin-title').textContent = org.name + ' - Admin Dashboard';
+    document.title = org.name + ' - Monitoring';
+    document.getElementById('admin-title').textContent = org.name + ' - Monitoring';
     document.getElementById('admin-subtitle').textContent = 'Überwachung und Steuerung der KI-Plattform für ' + org.name + '.';
 
     const latencyHistory = [];

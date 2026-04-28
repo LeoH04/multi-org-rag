@@ -1,24 +1,24 @@
 # ============================================================
-# Albert-Schweitzer-Kinderdorf — Open WebUI
+# AIDAHO Copilot — Open WebUI
 # ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openwebui-ask
+  name: openwebui-aidaho
   namespace: multi-org-rag
   labels:
-    app: openwebui-ask
-    org: ask
+    app: openwebui-aidaho
+    org: aidaho
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: openwebui-ask
+      app: openwebui-aidaho
   template:
     metadata:
       labels:
-        app: openwebui-ask
-        org: ask
+        app: openwebui-aidaho
+        org: aidaho
     spec:
       initContainers:
         - name: wait-for-postgres
@@ -29,15 +29,19 @@ spec:
           image: ghcr.io/open-webui/open-webui:v0.8.12
           ports:
             - containerPort: 8080
+          # Shared OpenWebUI config (RAG, embedding, tika, etc.)
           envFrom:
             - configMapRef:
                 name: openwebui-shared-config
+          # Per-instance overrides
           env:
+            # Database
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: DATABASE_URL_ASK
+                  key: DATABASE_URL_AIDAHO
+            # LLM backend
             - name: DEFAULT_MODELS
               valueFrom:
                 configMapKeyRef:
@@ -48,11 +52,13 @@ spec:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: VLLM_API_KEY
+            # Reranker API key
             - name: RAG_EXTERNAL_RERANKER_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: RERANK_API_KEY
+            # Tavily
             - name: TAVILY_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -63,20 +69,22 @@ spec:
                 configMapKeyRef:
                   name: multi-org-config
                   key: DOMAIN
-            - name: ORG3_SUBDOMAIN
+            - name: ORG1_SUBDOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: multi-org-config
-                  key: ORG3_SUBDOMAIN
+                  key: ORG1_SUBDOMAIN
+            # Branding
             - name: WEBUI_NAME
-              value: "Albert-Schweitzer-Kinderdorf"
+              value: "AIDAHO Copilot"
             - name: WEBUI_URL
-              value: "http://$(ORG3_SUBDOMAIN).$(DOMAIN)"
+              value: "https://$(ORG1_SUBDOMAIN).$(DOMAIN)"
+            # Auth
             - name: WEBUI_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: SECRET_KEY_ALBERT_SCHWEITZER_KINDERDORF
+                  key: SECRET_KEY_AIDAHO
             - name: WEBUI_ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:
@@ -99,17 +107,17 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: openwebui-ask-data
+            claimName: openwebui-aidaho-data
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: openwebui-ask
+  name: openwebui-aidaho
   namespace: multi-org-rag
 spec:
   selector:
-    app: openwebui-ask
+    app: openwebui-aidaho
   ports:
     - port: 8080
       targetPort: 8080

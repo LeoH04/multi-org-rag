@@ -3,7 +3,7 @@
 # Adjust storageClassName and sizes for your cluster.
 # ============================================================
 
-# PostgreSQL data (all 3 org databases + pgvector indexes)
+# PostgreSQL data (AIDAHO database + pgvector indexes)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -45,11 +45,11 @@ spec:
       storage: 10Gi
 
 ---
-# Open WebUI data — GWF
+# Open WebUI data — AIDAHO
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: openwebui-gwf-data
+  name: openwebui-aidaho-data
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
@@ -59,67 +59,11 @@ spec:
       storage: 5Gi
 
 ---
-# Open WebUI data — Inge Graessle
+# n8n data — AIDAHO
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: openwebui-inge-graessle-data
-  namespace: multi-org-rag
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
-  resources:
-    requests:
-      storage: 5Gi
-
----
-# Open WebUI data — ASK
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: openwebui-ask-data
-  namespace: multi-org-rag
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
-  resources:
-    requests:
-      storage: 5Gi
-
----
-# n8n data — GWF
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: n8n-gwf-data
-  namespace: multi-org-rag
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
-  resources:
-    requests:
-      storage: 2Gi
-
----
-# n8n data — Inge Graessle
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: n8n-inge-graessle-data
-  namespace: multi-org-rag
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
-  resources:
-    requests:
-      storage: 2Gi
-
----
-# n8n data — ASK
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: n8n-ask-data
+  name: n8n-aidaho-data
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]

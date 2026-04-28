@@ -30,15 +30,11 @@ resources:
   - vllm-chat.yaml
   - vllm-reranker.yaml
 
-  # 5. Per-org Open WebUI
-  - openwebui-gwf.yaml
-  - openwebui-inge-graessle.yaml
-  - openwebui-ask.yaml
+  # 5. University Open WebUI
+  - openwebui-aidaho.yaml
 
-  # 6. Per-org n8n
-  - n8n-gwf.yaml
-  - n8n-inge-graessle.yaml
-  - n8n-ask.yaml
+  # 6. University n8n
+  - n8n-aidaho.yaml
 
   # 7. Support services
   - admin-monitor.yaml
@@ -57,7 +53,7 @@ configMapGenerator:
       - default.conf.template=nginx.conf.template
 
 replacements:
-  # Root landing host: DOMAIN
+  # Shared second hostname segment for the public service routes: *.DOMAIN
   - source:
       kind: ConfigMap
       name: multi-org-config
@@ -68,28 +64,12 @@ replacements:
           name: multi-org-rag
         fieldPaths:
           - spec.rules.0.host
-
-  # Shared second hostname segment for all subdomain routes: *.DOMAIN
-  - source:
-      kind: ConfigMap
-      name: multi-org-config
-      fieldPath: data.DOMAIN
-    targets:
-      - select:
-          kind: Ingress
-          name: multi-org-rag
-        fieldPaths:
           - spec.rules.1.host
-          - spec.rules.2.host
-          - spec.rules.3.host
-          - spec.rules.4.host
-          - spec.rules.5.host
-          - spec.rules.6.host
         options:
           delimiter: .
           index: 1
 
-  # Open WebUI org subdomains: ORG*_SUBDOMAIN.DOMAIN
+  # Open WebUI public hostname: ORG1_SUBDOMAIN.DOMAIN
   - source:
       kind: ConfigMap
       name: multi-org-config
@@ -99,38 +79,12 @@ replacements:
           kind: Ingress
           name: multi-org-rag
         fieldPaths:
-          - spec.rules.1.host
-        options:
-          delimiter: .
-          index: 0
-  - source:
-      kind: ConfigMap
-      name: multi-org-config
-      fieldPath: data.ORG2_SUBDOMAIN
-    targets:
-      - select:
-          kind: Ingress
-          name: multi-org-rag
-        fieldPaths:
-          - spec.rules.2.host
-        options:
-          delimiter: .
-          index: 0
-  - source:
-      kind: ConfigMap
-      name: multi-org-config
-      fieldPath: data.ORG3_SUBDOMAIN
-    targets:
-      - select:
-          kind: Ingress
-          name: multi-org-rag
-        fieldPaths:
-          - spec.rules.3.host
+          - spec.rules.0.host
         options:
           delimiter: .
           index: 0
 
-  # n8n org subdomains: N8N_ORG*_SUBDOMAIN.DOMAIN
+  # n8n public hostname: N8N_ORG1_SUBDOMAIN.DOMAIN
   - source:
       kind: ConfigMap
       name: multi-org-config
@@ -140,33 +94,7 @@ replacements:
           kind: Ingress
           name: multi-org-rag
         fieldPaths:
-          - spec.rules.4.host
-        options:
-          delimiter: .
-          index: 0
-  - source:
-      kind: ConfigMap
-      name: multi-org-config
-      fieldPath: data.N8N_ORG2_SUBDOMAIN
-    targets:
-      - select:
-          kind: Ingress
-          name: multi-org-rag
-        fieldPaths:
-          - spec.rules.5.host
-        options:
-          delimiter: .
-          index: 0
-  - source:
-      kind: ConfigMap
-      name: multi-org-config
-      fieldPath: data.N8N_ORG3_SUBDOMAIN
-    targets:
-      - select:
-          kind: Ingress
-          name: multi-org-rag
-        fieldPaths:
-          - spec.rules.6.host
+          - spec.rules.1.host
         options:
           delimiter: .
           index: 0

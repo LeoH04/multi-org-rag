@@ -1,26 +1,26 @@
 # ============================================================
-# Inge Gräßle MdB Büro — n8n
+# AIDAHO Copilot — n8n
 # ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: n8n-inge-graessle
+  name: n8n-aidaho
   namespace: multi-org-rag
   labels:
-    app: n8n-inge-graessle
-    org: inge-graessle
+    app: n8n-aidaho
+    org: aidaho
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: n8n-inge-graessle
+      app: n8n-aidaho
   template:
     metadata:
       labels:
-        app: n8n-inge-graessle
-        org: inge-graessle
+        app: n8n-aidaho
+        org: aidaho
     spec:
       containers:
         - name: n8n
@@ -36,17 +36,17 @@ spec:
                 configMapKeyRef:
                   name: multi-org-config
                   key: DOMAIN
-            - name: N8N_ORG2_SUBDOMAIN
+            - name: N8N_ORG1_SUBDOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: multi-org-config
-                  key: N8N_ORG2_SUBDOMAIN
+                  key: N8N_ORG1_SUBDOMAIN
             - name: N8N_HOST
-              value: "$(N8N_ORG2_SUBDOMAIN).$(DOMAIN)"
+              value: "$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
             - name: N8N_EDITOR_BASE_URL
-              value: "http://$(N8N_ORG2_SUBDOMAIN).$(DOMAIN)"
+              value: "https://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)"
             - name: WEBHOOK_URL
-              value: "http://$(N8N_ORG2_SUBDOMAIN).$(DOMAIN)/"
+              value: "https://$(N8N_ORG1_SUBDOMAIN).$(DOMAIN)/"
             - name: N8N_BASIC_AUTH_USER
               valueFrom:
                 secretKeyRef:
@@ -61,7 +61,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: N8N_ENCRYPTION_KEY_ORG2
+                  key: N8N_ENCRYPTION_KEY_AIDAHO
           volumeMounts:
             - name: data
               mountPath: /home/node/.n8n
@@ -74,17 +74,17 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: n8n-inge-graessle-data
+            claimName: n8n-aidaho-data
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: n8n-inge-graessle
+  name: n8n-aidaho
   namespace: multi-org-rag
 spec:
   selector:
-    app: n8n-inge-graessle
+    app: n8n-aidaho
   ports:
     - port: 5678
       targetPort: 5678

@@ -3,67 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Internes KI-Analyseportal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>AIDAHO Copilot</title>
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
-<body>
-  <div class="container">
-    <div class="eyebrow">Internes Mitarbeiterportal</div>
-    <h1>Vertrauliche Dokumente sicher analysieren</h1>
-    <p class="subtitle">Dieses KI-Tool ist ausschließlich für Mitarbeitende bestimmt. Bitte Organisation auswählen.</p>
-    <nav class="quick-nav" aria-label="Schnellnavigation">
-      <a class="quick-nav-link is-active" href="./index.html">Organisationen</a>
-      <a class="quick-nav-link" href="./admin-all.html">Globales Dashboard</a>
-    </nav>
+<body class="landing-page">
+  <main class="landing-shell">
+    <header class="landing-top" aria-label="Universitaet Hohenheim">
+      <a class="brand-lockup" href="./index.html" aria-label="AIDAHO Copilot Startseite">
+        <img class="hohenheim-logo" src="./assets/hohenheim_logo.png" alt="Universität Hohenheim">
+        <span class="brand-text">
+          <span class="brand-unit">Universität Hohenheim</span>
+          <span class="brand-service">AIDAHO</span>
+        </span>
+      </a>
+      <a class="monitor-link" href="./admin-all.html">Monitoring</a>
+    </header>
 
-    <div class="org-grid">
-      <a class="org-card org1" href="./portal.html?org=gwf">
-        <div class="org-header">
-          <div class="org-logo-wrap">
-            <img class="org-logo" src="./assets/gwf-favicon-270px.png" alt="Logo GWF Wohnungsgenossenschaft eG">
-          </div>
-          <div class="org-title">
-            <h2>GWF Wohnungs­genossenschaft eG</h2>
-            <div class="org-subtitle">Interner Bereich</div>
-          </div>
-        </div>
-        <p>Interner Zugang für die geschützte Analyse vertraulicher Dokumente und Vorgänge.</p>
-        <span class="org-arrow">Portal öffnen</span>
+    <section class="landing-hero" aria-labelledby="landing-title">
+      <div class="hero-copy">
+        <h1 id="landing-title">AIDAHO Copilot</h1>
+        <p class="eyebrow">Interner KI-Dienst</p>
+        <p class="subtitle">
+          Ein geschützter Zugang zu KI-gestützter Dokumentanalyse und workflowbasierter Automatisierung für die Universität Hohenheim.
+        </p>
+      </div>
+    </section>
+
+    <section class="service-grid" aria-label="AIDAHO Dienste">
+      <a id="choice-openwebui" class="service-card service-card-primary" href="https://aidaho-copilot.uni-hohenheim.de/">
+        <span class="service-accent"></span>
+        <span class="service-head">
+          <span class="service-logo-wrap">
+            <img class="service-logo" src="./assets/open-webui-icon-115aa34b938cd4b21063a0a1da4c06e0.png" alt="">
+          </span>
+          <span>
+            <span class="service-title">Copilot</span>
+            <span class="service-kicker">Chat und Dokumente</span>
+          </span>
+        </span>
+        <span class="service-description">RAG, Websuche und Analyse vertraulicher Arbeitsdokumente.</span>
+        <span class="service-action">Copilot öffnen</span>
       </a>
 
-      <a class="org-card org2" href="./portal.html?org=inge-graessle">
-        <div class="org-header">
-          <div class="org-logo-wrap">
-            <img class="org-logo" src="./assets/5e7f2180a852b6d6bdf3b11d.webp" alt="Symbol Inge Gräßle MdB Büro">
-          </div>
-          <div class="org-title">
-            <h2>Inge Gräßle MdB Büro</h2>
-            <div class="org-subtitle">Interner Bereich</div>
-          </div>
-        </div>
-        <p>Interner Zugang für die geschützte Analyse vertraulicher Dokumente und Kommunikation.</p>
-        <span class="org-arrow">Portal öffnen</span>
+      <a id="choice-n8n" class="service-card service-card-secondary" href="https://aidaho-workflow.uni-hohenheim.de/">
+        <span class="service-accent"></span>
+        <span class="service-head">
+          <span class="service-logo-wrap">
+            <img class="service-logo" src="./assets/n8n-color.png" alt="">
+          </span>
+          <span>
+            <span class="service-title">Workflow</span>
+            <span class="service-kicker">Automation und Integration</span>
+          </span>
+        </span>
+        <span class="service-description">n8n für Automationen, Webhooks und verwaltete Prozessketten.</span>
+        <span class="service-action">Workflow öffnen</span>
       </a>
+    </section>
 
-      <a class="org-card org3" href="./portal.html?org=ask">
-        <div class="org-header">
-          <div class="org-logo-wrap">
-            <img class="org-logo" src="./assets/images.png" alt="Logo Albert-Schweitzer-Kinderdorf">
-          </div>
-          <div class="org-title">
-            <h2>Albert-Schweitzer-Kinderdorf</h2>
-            <div class="org-subtitle">Interner Bereich</div>
-          </div>
-        </div>
-        <p>Interner Zugang für die geschützte Analyse vertraulicher Falldokumente und Abstimmungen.</p>
-        <span class="org-arrow">Portal öffnen</span>
-      </a>
-    </div>
+    <footer class="landing-footer">
+      <span>Nur für Mitarbeitende und berechtigte Projektbeteiligte.</span>
+      <span>Universität Hohenheim</span>
+    </footer>
+  </main>
 
-    <p class="footer">Nur für Mitarbeitende: Sicherer Zugang zur Analyse vertraulicher Dokumente im jeweiligen Organisationsbereich.</p>
-  </div>
+  <script>
+    const serviceConfig = {
+      baseDomain: 'uni-hohenheim.de',
+      webuiSubdomain: 'aidaho-copilot',
+      n8nSubdomain: 'aidaho-workflow'
+    };
+
+    function isLocalHost(hostname) {
+      return hostname === '127.0.0.1' ||
+        hostname === '[::1]' ||
+        hostname === 'localhost' ||
+        hostname.endsWith('.localhost');
+    }
+
+    function buildUrl(subdomain) {
+      const local = isLocalHost(window.location.hostname);
+      const host = local
+        ? subdomain + '.localhost'
+        : subdomain + '.' + serviceConfig.baseDomain;
+      const protocol = local ? window.location.protocol : 'https:';
+
+      return protocol + '//' + host + '/';
+    }
+
+    document.getElementById('choice-openwebui').href = buildUrl(serviceConfig.webuiSubdomain);
+    document.getElementById('choice-n8n').href = buildUrl(serviceConfig.n8nSubdomain);
+  </script>
 </body>
 </html>

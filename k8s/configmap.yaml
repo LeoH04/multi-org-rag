@@ -4,13 +4,9 @@ metadata:
   name: multi-org-config
   namespace: multi-org-rag
 data:
-  DOMAIN: "localhost"
-  ORG1_SUBDOMAIN: "gwf-stuttgart"
-  ORG2_SUBDOMAIN: "inge-graessle-mdb"
-  ORG3_SUBDOMAIN: "albert-schweitzer-kinderdorf"
-  N8N_ORG1_SUBDOMAIN: "gwf-stuttgart-automations"
-  N8N_ORG2_SUBDOMAIN: "inge-graessle-mdb-automations"
-  N8N_ORG3_SUBDOMAIN: "albert-schweitzer-kinderdorf-automations"
+  DOMAIN: "uni-hohenheim.de"
+  ORG1_SUBDOMAIN: "aidaho-copilot"
+  N8N_ORG1_SUBDOMAIN: "aidaho-workflow"
   VLLM_MODEL: "openai/gpt-oss-20b"
   VLLM_MODEL_NAME: "gpt-oss-20b"
   VLLM_MAX_MODEL_LEN: "131072"
@@ -63,11 +59,11 @@ metadata:
   namespace: multi-org-rag
 data:
   N8N_PORT: "5678"
-  N8N_PROTOCOL: "http"
+  N8N_PROTOCOL: "https"
   N8N_BASIC_AUTH_ACTIVE: "true"
   N8N_METRICS: "true"
   N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: "true"
   N8N_METRICS_INCLUDE_WORKFLOW_STATISTICS: "true"
-  N8N_SECURE_COOKIE: "false"
+  N8N_SECURE_COOKIE: "true"
   TZ: "Europe/Berlin"
   GENERIC_TIMEZONE: "Europe/Berlin"

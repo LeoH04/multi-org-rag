@@ -1,5 +1,5 @@
 # ============================================================
-# PostgreSQL init script — creates one database per org.
+# PostgreSQL init script — creates the AIDAHO Open WebUI database.
 # Runs only on first startup (empty data volume).
 # ============================================================
 apiVersion: v1
@@ -9,11 +9,5 @@ metadata:
   namespace: multi-org-rag
 data:
   init-multi-db.sql: |
-    -- GWF database
-    CREATE DATABASE openwebui_gwf;
-
-    -- Inge Graessle MdB Buro database
-    CREATE DATABASE openwebui_ig_mdb;
-
-    -- Albert-Schweitzer-Kinderdorf database
-    CREATE DATABASE openwebui_ask;
+    -- AIDAHO Copilot database
+    CREATE DATABASE openwebui_aidaho;

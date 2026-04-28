@@ -1,5 +1,5 @@
 # ============================================================
-# Kubernetes Ingress for multi-org routing.
+# Kubernetes Ingress for AIDAHO public routing.
 # Included by default in k8s/kustomization.yaml.
 # ============================================================
 apiVersion: networking.k8s.io/v1
@@ -17,83 +17,25 @@ metadata:
 spec:
   ingressClassName: public
   rules:
-    # Landing page + admin API
-    - host: localhost
-      http:
-        paths:
-          - path: /api/admin
-            pathType: Prefix
-            backend:
-              service:
-                name: admin-monitor
-                port:
-                  number: 3000
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-landing
-                port:
-                  number: 80
-    # Open WebUI instances
-    - host: gwf-stuttgart.localhost
+    # AIDAHO Copilot (Open WebUI)
+    - host: aidaho-copilot.localhost
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: openwebui-gwf
+                name: openwebui-aidaho
                 port:
                   number: 8080
-    - host: inge-graessle-mdb.localhost
+    # AIDAHO Workflow (n8n)
+    - host: aidaho-workflow.localhost
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: openwebui-inge-graessle
-                port:
-                  number: 8080
-    - host: albert-schweitzer-kinderdorf.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: openwebui-ask
-                port:
-                  number: 8080
-    # n8n instances
-    - host: gwf-stuttgart-automations.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: n8n-gwf
-                port:
-                  number: 5678
-    - host: inge-graessle-mdb-automations.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: n8n-inge-graessle
-                port:
-                  number: 5678
-    - host: albert-schweitzer-kinderdorf-automations.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: n8n-ask
+                name: n8n-aidaho
                 port:
                   number: 5678

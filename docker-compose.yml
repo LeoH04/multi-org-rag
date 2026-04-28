@@ -1,16 +1,12 @@
 # ============================================================
-# Multi-Org Open WebUI — Docker Compose (Local Prototype)
+# AIDAHO Open WebUI — Docker Compose (Local Prototype)
 # ============================================================
 #
 # Services:
-#   - postgres       : Shared PostgreSQL + pgvector (one DB per org)
+#   - postgres       : PostgreSQL + pgvector
 #   - tika           : Shared document extraction
-#   - openwebui-gwf             : Open WebUI instance for GWF Wohnungsgenossenschaft eG
-#   - openwebui-inge-graessle   : Open WebUI instance for Inge Graessle MdB Buero
-#   - openwebui-ask             : Open WebUI instance for Albert-Schweitzer-Kinderdorf
-#   - n8n-gwf                   : n8n instance for GWF Wohnungsgenossenschaft eG workflows
-#   - n8n-inge-graessle         : n8n instance for Inge Graessle MdB Buero workflows
-#   - n8n-ask                   : n8n instance for Albert-Schweitzer-Kinderdorf workflows
+#   - openwebui-aidaho: AIDAHO Copilot (Open WebUI)
+#   - n8n-aidaho      : AIDAHO Workflows (n8n)
 #   - nginx          : Reverse proxy + landing page
 #
 # Usage:
@@ -19,17 +15,14 @@
 #   3. Start vLLM services and wait for models to download on first boot
 #   4. Open http://localhost (or http://yourdomain.com)
 #
-#   With DOMAIN=localhost (default):
+#   With DOMAIN=localhost:
 #     Landing page : http://localhost
-#     GWF          : http://${ORG1_SUBDOMAIN}.localhost
-#     Inge Graessle: http://${ORG2_SUBDOMAIN}.localhost
-#     ASK          : http://${ORG3_SUBDOMAIN}.localhost
+#     Copilot      : http://${ORG1_SUBDOMAIN}.localhost
+#     Workflows    : http://${N8N_ORG1_SUBDOMAIN}.localhost
 #
-#   With DOMAIN=yourdomain.com:
-#     Landing page : http://yourdomain.com
-#     GWF          : http://${ORG1_SUBDOMAIN}.yourdomain.com
-#     Inge Graessle: http://${ORG2_SUBDOMAIN}.yourdomain.com
-#     ASK          : http://${ORG3_SUBDOMAIN}.yourdomain.com
+#   With DOMAIN=uni-hohenheim.de:
+#     Copilot      : https://${ORG1_SUBDOMAIN}.uni-hohenheim.de
+#     Workflows    : https://${N8N_ORG1_SUBDOMAIN}.uni-hohenheim.de
 # ============================================================
 
 services:
@@ -159,9 +152,9 @@ services:
       - backend
 
   # ──────────────────────────────────────────────
-  # GWF Wohnungsgenossenschaft eG — Open WebUI
+  # AIDAHO Copilot — Open WebUI
   # ──────────────────────────────────────────────
-  openwebui-gwf:
+  openwebui-aidaho:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     # No direct port — accessed via nginx reverse proxy
@@ -171,8 +164,8 @@ services:
         max-size: "10m"
         max-file: "3"
     environment:
-      # --- Database (separate DB for this org) ---
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_gwf
+      # --- Database ---
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_aidaho
       VECTOR_DB: pgvector
       # PGVECTOR_DB_URL defaults to DATABASE_URL — no need to set separately
 
@@ -210,11 +203,11 @@ services:
       TIKA_SERVER_URL: http://tika:9998
 
       # --- Branding ---
-      WEBUI_NAME: "GWF Wohnungs­genossenschaft eG"
-      WEBUI_URL: http://${ORG1_SUBDOMAIN}.${DOMAIN}
+      WEBUI_NAME: "AIDAHO Copilot"
+      WEBUI_URL: https://${ORG1_SUBDOMAIN}.${DOMAIN}
 
       # --- Auth & admin ---
-      WEBUI_SECRET_KEY: ${SECRET_KEY_GWF_STUTTGART}
+      WEBUI_SECRET_KEY: ${SECRET_KEY_AIDAHO}
       WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
       WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
       DEFAULT_LOCALE: de
@@ -224,7 +217,7 @@ services:
       # --- Config persistence (set to true only during initial setup) ---
       RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
     volumes:
-      - openwebui_gwf_data:/app/backend/data
+      - openwebui_aidaho_data:/app/backend/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -234,237 +227,31 @@ services:
       - backend
 
   # ──────────────────────────────────────────────
-  # Inge Graessle MdB Buero — Open WebUI
+  # AIDAHO Copilot — n8n
   # ──────────────────────────────────────────────
-  openwebui-inge-graessle:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
-    restart: unless-stopped
-    # No direct port — accessed via nginx reverse proxy
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    environment:
-      # --- Database (separate DB for this org) ---
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ig_mdb
-      VECTOR_DB: pgvector
-
-      # --- LLM backend (shared vLLM service) ---
-      ENABLE_OPENAI_API: "true"
-      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
-      DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
-      OPENAI_API_KEYS: ${VLLM_API_KEY}
-      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
-      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
-      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
-      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
-      WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
-      RAG_TEXT_SPLITTER: token
-      TIKTOKEN_ENCODING_NAME: cl100k_base
-      CHUNK_SIZE: 1400
-      CHUNK_OVERLAP: 200
-      RAG_TOP_K: ${RAG_TOP_K}
-      RAG_TOP_K_RERANKER: ${RAG_TOP_K_RERANKER}
-      RAG_RELEVANCE_THRESHOLD: ${RAG_RELEVANCE_THRESHOLD}
-      RAG_HYBRID_BM25_WEIGHT: ${RAG_HYBRID_BM25_WEIGHT}
-      ENABLE_RAG_HYBRID_SEARCH: ${ENABLE_RAG_HYBRID_SEARCH}
-      ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS: ${ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS}
-      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE}
-      RAG_RERANKING_MODEL: ${RAG_RERANKING_MODEL}
-      RAG_EXTERNAL_RERANKER_URL: http://vllm-reranker:8000/v1/rerank
-      RAG_EXTERNAL_RERANKER_API_KEY: ${RERANK_API_KEY}
-      RAG_EXTERNAL_RERANKER_TIMEOUT: ${RAG_EXTERNAL_RERANKER_TIMEOUT}
-      TAVILY_API_KEY: ${TAVILY_API_KEY}
-      WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT}
-
-      # --- Document extraction (shared Tika) ---
-      CONTENT_EXTRACTION_ENGINE: tika
-      TIKA_SERVER_URL: http://tika:9998
-
-      # --- Branding ---
-      WEBUI_NAME: "Inge Gräßle MdB Büro"
-      WEBUI_URL: http://${ORG2_SUBDOMAIN}.${DOMAIN}
-
-      # --- Auth & admin ---
-      WEBUI_SECRET_KEY: ${SECRET_KEY_INGE_GRAESSLE_MDB}
-      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
-      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
-      DEFAULT_LOCALE: de
-      DEFAULT_USER_ROLE: pending
-      ENABLE_API_KEYS: "true"
-
-      # --- Config persistence (set to true only during initial setup) ---
-      RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
-    volumes:
-      - openwebui_inge_graessle_data:/app/backend/data
-    depends_on:
-      postgres:
-        condition: service_healthy
-      tika:
-        condition: service_started
-    networks:
-      - backend
-
-  # ──────────────────────────────────────────────
-  # Albert-Schweitzer-Kinderdorf — Open WebUI
-  # ──────────────────────────────────────────────
-  openwebui-ask:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
-    restart: unless-stopped
-    # No direct port — accessed via nginx reverse proxy
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    environment:
-      # --- Database (separate DB for this org) ---
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/openwebui_ask
-      VECTOR_DB: pgvector
-
-      # --- LLM backend (shared vLLM service) ---
-      ENABLE_OPENAI_API: "true"
-      OPENAI_API_BASE_URLS: http://vllm-chat:8000/v1
-      DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
-      OPENAI_API_KEYS: ${VLLM_API_KEY}
-      DEFAULT_MODELS: ${VLLM_MODEL_NAME}
-      RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
-      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
-      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
-      WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
-      RAG_TEXT_SPLITTER: token
-      TIKTOKEN_ENCODING_NAME: cl100k_base
-      CHUNK_SIZE: 1400
-      CHUNK_OVERLAP: 200
-      RAG_TOP_K: ${RAG_TOP_K}
-      RAG_TOP_K_RERANKER: ${RAG_TOP_K_RERANKER}
-      RAG_RELEVANCE_THRESHOLD: ${RAG_RELEVANCE_THRESHOLD}
-      RAG_HYBRID_BM25_WEIGHT: ${RAG_HYBRID_BM25_WEIGHT}
-      ENABLE_RAG_HYBRID_SEARCH: ${ENABLE_RAG_HYBRID_SEARCH}
-      ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS: ${ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS}
-      RAG_RERANKING_ENGINE: ${RAG_RERANKING_ENGINE}
-      RAG_RERANKING_MODEL: ${RAG_RERANKING_MODEL}
-      RAG_EXTERNAL_RERANKER_URL: http://vllm-reranker:8000/v1/rerank
-      RAG_EXTERNAL_RERANKER_API_KEY: ${RERANK_API_KEY}
-      RAG_EXTERNAL_RERANKER_TIMEOUT: ${RAG_EXTERNAL_RERANKER_TIMEOUT}
-      TAVILY_API_KEY: ${TAVILY_API_KEY}
-      WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT}
-
-      # --- Document extraction (shared Tika) ---
-      CONTENT_EXTRACTION_ENGINE: tika
-      TIKA_SERVER_URL: http://tika:9998
-
-      # --- Branding ---
-      WEBUI_NAME: "Albert-Schweitzer-Kinderdorf"
-      WEBUI_URL: http://${ORG3_SUBDOMAIN}.${DOMAIN}
-
-      # --- Auth & admin ---
-      WEBUI_SECRET_KEY: ${SECRET_KEY_ALBERT_SCHWEITZER_KINDERDORF}
-      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL}
-      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD}
-      DEFAULT_LOCALE: de
-      DEFAULT_USER_ROLE: pending
-      ENABLE_API_KEYS: "true"
-
-      # --- Config persistence (set to true only during initial setup) ---
-      RESET_CONFIG_ON_START: ${OPENWEBUI_RESET_CONFIG_ON_START}
-    volumes:
-      - openwebui_ask_data:/app/backend/data
-    depends_on:
-      postgres:
-        condition: service_healthy
-      tika:
-        condition: service_started
-    networks:
-      - backend
-
-  # ──────────────────────────────────────────────
-  # GWF Wohnungsgenossenschaft eG — n8n
-  # ──────────────────────────────────────────────
-  n8n-gwf:
+  n8n-aidaho:
     image: n8nio/n8n:2.13.4
     restart: unless-stopped
     environment:
       N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678
-      N8N_PROTOCOL: http
+      N8N_PROTOCOL: https
       N8N_PROXY_HOPS: 1
       N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
+      N8N_EDITOR_BASE_URL: https://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
+      WEBHOOK_URL: https://${N8N_ORG1_SUBDOMAIN}.${DOMAIN}/
       N8N_BASIC_AUTH_ACTIVE: "true"
       N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
       N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
       N8N_METRICS: "true"
       N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: "true"
       N8N_METRICS_INCLUDE_WORKFLOW_STATISTICS: "true"
-      N8N_SECURE_COOKIE: "false"
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG1}
+      N8N_SECURE_COOKIE: "true"
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_AIDAHO}
       TZ: Europe/Berlin
       GENERIC_TIMEZONE: Europe/Berlin
     volumes:
-      - n8n_gwf_data:/home/node/.n8n
-    networks:
-      - backend
-
-  # ──────────────────────────────────────────────
-  # Inge Graessle MdB Buero — n8n
-  # ──────────────────────────────────────────────
-  n8n-inge-graessle:
-    image: n8nio/n8n:2.13.4
-    restart: unless-stopped
-    environment:
-      N8N_HOST: ${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
-      N8N_PORT: 5678
-      N8N_PROTOCOL: http
-      N8N_PROXY_HOPS: 1
-      N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG2_SUBDOMAIN}.${DOMAIN}/
-      N8N_BASIC_AUTH_ACTIVE: "true"
-      N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
-      N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
-      N8N_METRICS: "true"
-      N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: "true"
-      N8N_METRICS_INCLUDE_WORKFLOW_STATISTICS: "true"
-      N8N_SECURE_COOKIE: "false"
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG2}
-      TZ: Europe/Berlin
-      GENERIC_TIMEZONE: Europe/Berlin
-    volumes:
-      - n8n_inge_graessle_data:/home/node/.n8n
-    networks:
-      - backend
-
-  # ──────────────────────────────────────────────
-  # Albert-Schweitzer-Kinderdorf — n8n
-  # ──────────────────────────────────────────────
-  n8n-ask:
-    image: n8nio/n8n:2.13.4
-    restart: unless-stopped
-    environment:
-      N8N_HOST: ${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
-      N8N_PORT: 5678
-      N8N_PROTOCOL: http
-      N8N_PROXY_HOPS: 1
-      N8N_PUSH_BACKEND: websocket
-      N8N_EDITOR_BASE_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}
-      WEBHOOK_URL: http://${N8N_ORG3_SUBDOMAIN}.${DOMAIN}/
-      N8N_BASIC_AUTH_ACTIVE: "true"
-      N8N_BASIC_AUTH_USER: ${N8N_ADMIN_USER}
-      N8N_BASIC_AUTH_PASSWORD: ${N8N_ADMIN_PASSWORD}
-      N8N_METRICS: "true"
-      N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: "true"
-      N8N_METRICS_INCLUDE_WORKFLOW_STATISTICS: "true"
-      N8N_SECURE_COOKIE: "false"
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY_ORG3}
-      TZ: Europe/Berlin
-      GENERIC_TIMEZONE: Europe/Berlin
-    volumes:
-      - n8n_ask_data:/home/node/.n8n
+      - n8n_aidaho_data:/home/node/.n8n
     networks:
       - backend
 
@@ -486,17 +273,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      openwebui-gwf:
+      openwebui-aidaho:
         condition: service_started
-      openwebui-inge-graessle:
-        condition: service_started
-      openwebui-ask:
-        condition: service_started
-      n8n-gwf:
-        condition: service_started
-      n8n-inge-graessle:
-        condition: service_started
-      n8n-ask:
+      n8n-aidaho:
         condition: service_started
     networks:
       - backend
@@ -509,11 +288,7 @@ services:
     environment:
       - DOMAIN=${DOMAIN}
       - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
-      - ORG2_SUBDOMAIN=${ORG2_SUBDOMAIN}
-      - ORG3_SUBDOMAIN=${ORG3_SUBDOMAIN}
       - N8N_ORG1_SUBDOMAIN=${N8N_ORG1_SUBDOMAIN}
-      - N8N_ORG2_SUBDOMAIN=${N8N_ORG2_SUBDOMAIN}
-      - N8N_ORG3_SUBDOMAIN=${N8N_ORG3_SUBDOMAIN}
     volumes:
       # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
       - ./k8s/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
@@ -521,12 +296,8 @@ services:
       - ./landing:/usr/share/nginx/html:ro
     depends_on:
       - admin-monitor
-      - openwebui-gwf
-      - openwebui-inge-graessle
-      - openwebui-ask
-      - n8n-gwf
-      - n8n-inge-graessle
-      - n8n-ask
+      - openwebui-aidaho
+      - n8n-aidaho
     networks:
       - backend
 
@@ -550,11 +321,9 @@ services:
           current_min=$$(date +%M)
           if [ "$$current_hour" = "02" ] && [ "$$current_min" = "00" ]; then
             echo "[$$( date -Iseconds )] Starting backup..."
-            for db in openwebui_gwf openwebui_ig_mdb openwebui_ask; do
-              pg_dump -h postgres -U $${POSTGRES_USER} -d $$db \
-                | gzip > /backups/$${db}_$$(date +%Y%m%d_%H%M%S).sql.gz
-              echo "[$$( date -Iseconds )] Backed up $$db"
-            done
+            pg_dump -h postgres -U $${POSTGRES_USER} -d openwebui_aidaho \
+              | gzip > /backups/openwebui_aidaho_$$(date +%Y%m%d_%H%M%S).sql.gz
+            echo "[$$( date -Iseconds )] Backed up openwebui_aidaho"
             # Keep only last 7 days of backups
             find /backups -name "*.sql.gz" -mtime +7 -delete
             echo "[$$( date -Iseconds )] Backup complete. Old backups cleaned."
@@ -574,12 +343,8 @@ services:
 volumes:
   postgres_data:
   vllm_cache:
-  openwebui_gwf_data:
-  openwebui_inge_graessle_data:
-  openwebui_ask_data:
-  n8n_gwf_data:
-  n8n_inge_graessle_data:
-  n8n_ask_data:
+  openwebui_aidaho_data:
+  n8n_aidaho_data:
   backups:
 
 # ──────────────────────────────────────────────
