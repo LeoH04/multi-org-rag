@@ -157,7 +157,8 @@ services:
   openwebui-aidaho:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
-    # No direct port — accessed via nginx reverse proxy
+    ports:
+      - "8080:8080"
     logging:
       driver: json-file
       options:
@@ -232,6 +233,8 @@ services:
   n8n-aidaho:
     image: n8nio/n8n:2.13.4
     restart: unless-stopped
+    ports:
+      - "5678:5678"
     environment:
       N8N_HOST: ${N8N_ORG1_SUBDOMAIN}.${DOMAIN}
       N8N_PORT: 5678

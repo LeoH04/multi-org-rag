@@ -31,11 +31,6 @@ map $http_x_forwarded_proto $forwarded_proto {
 # Rate limiting tuned for SPA asset bursts during page load.
 limit_req_zone $binary_remote_addr zone=general:10m rate=100r/s;
 
-# Docker DNS resolver — defers hostname resolution until request time
-# This prevents "host not found" errors at startup
-resolver 127.0.0.11:53 valid=10s;
-resolver_timeout 5s;
-
 # --------------------------------------------------------------
 # Landing Page
 # --------------------------------------------------------------
