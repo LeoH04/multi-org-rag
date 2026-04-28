@@ -115,7 +115,7 @@
     }
 
     async function fetchAllMetrics() {
-      const response = await fetch('./api/admin/metrics/all', { cache: 'no-store' });
+      const response = await fetch('/api/admin/metrics/all', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Monitoring API antwortet mit HTTP ' + response.status);
       }

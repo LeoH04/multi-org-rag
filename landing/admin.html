@@ -276,7 +276,7 @@
     }
 
     async function fetchMetrics() {
-      const url = './api/admin/metrics?org=' + encodeURIComponent(orgKey);
+      const url = '/api/admin/metrics?org=' + encodeURIComponent(orgKey);
       const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) {
         const errorJson = await response.json().catch(() => null);
