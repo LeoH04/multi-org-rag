@@ -1,0 +1,15 @@
+sudo ssh -F /Users/leonardhegemann/.ssh/config -N -L '80:127.0.0.1:80' HohServer for Kubernetes
+sudo ssh -F /Users/leonardhegemann/.ssh/config -N -L '80:[::1]:80' HohServer for Docker
+
+curl -X POST http://vllm-reranker:8000/v1/rerank \
+  -H "Authorization: Bearer eb2fce09756954a5562f0f4f5a3bf8733e86116401e7b2be979449d65beb8d8d" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "BAAI/bge-reranker-v2-m3",
+    "query": "How do I reset my password?",
+    "documents": [
+      "Password reset instructions are in the account settings page.",
+      "Our office opening hours are Monday to Friday.",
+      "To change your billing address, go to profile."
+    ]
+  }'
