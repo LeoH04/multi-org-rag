@@ -342,7 +342,7 @@ services:
 # ──────────────────────────────────────────────
 volumes:
   postgres_data:
-  vllm_cache:
+  # vllm_cache:  # DISABLED - vLLM services are commented out
   openwebui_aidaho_data:
   n8n_aidaho_data:
   backups:
