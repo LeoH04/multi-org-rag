@@ -280,26 +280,29 @@ services:
     networks:
       - backend
 
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    environment:
-      - DOMAIN=${DOMAIN}
-      - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
-      - N8N_ORG1_SUBDOMAIN=${N8N_ORG1_SUBDOMAIN}
-    volumes:
-      # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
-      - ./k8s/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
-      # Landing page
-      - ./landing:/usr/share/nginx/html:ro
-    depends_on:
-      - admin-monitor
-      - openwebui-aidaho
-      - n8n-aidaho
-    networks:
-      - backend
+  # ──────────────────────────────────────────────
+  # Nginx — Reverse Proxy + Landing Page — CURRENTLY DISABLED
+  # ──────────────────────────────────────────────
+  # nginx:
+  #   image: nginx:alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #   environment:
+  #     - DOMAIN=${DOMAIN}
+  #     - ORG1_SUBDOMAIN=${ORG1_SUBDOMAIN}
+  #     - N8N_ORG1_SUBDOMAIN=${N8N_ORG1_SUBDOMAIN}
+  #   volumes:
+  #     # Nginx config template — ${DOMAIN} is resolved by envsubst on startup
+  #     - ./k8s/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+  #     # Landing page
+  #     - ./landing:/usr/share/nginx/html:ro
+  #   depends_on:
+  #     - admin-monitor
+  #     - openwebui-aidaho
+  #     - n8n-aidaho
+  #   networks:
+  #     - backend
 
   # ──────────────────────────────────────────────
   # Database Backup (runs pg_dump daily at 2 AM)
