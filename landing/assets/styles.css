@@ -619,7 +619,12 @@ button.org-card {
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1;
+  text-decoration: none;
   white-space: nowrap;
+}
+
+.copyright-badge:hover {
+  color: var(--uhoh-blue);
 }
 
 .monitoring-page {
