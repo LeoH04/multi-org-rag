@@ -91,12 +91,15 @@
     </div>
 
     <footer class="landing-footer">
-      <span>Liveansicht: Daten stammen aus /api/admin/metrics/all.</span>
-      <span>Auto-Refresh alle 20 Sekunden</span>
+      <span class="copyright-badge">&copy; <span data-current-year>2026</span> Leonard Hegemann</span>
     </footer>
   </main>
 
   <script>
+    document.querySelectorAll('[data-current-year]').forEach((element) => {
+      element.textContent = new Date().getFullYear();
+    });
+
     function formatNumber(value) {
       return Number(value || 0).toLocaleString('de-DE');
     }

@@ -62,12 +62,15 @@
     </section>
 
     <footer class="landing-footer">
-      <span>Nur für Mitarbeitende und berechtigte Projektbeteiligte.</span>
-      <span>Universität Hohenheim</span>
+      <span class="copyright-badge">&copy; <span data-current-year>2026</span> Leonard Hegemann</span>
     </footer>
   </main>
 
   <script>
+    document.querySelectorAll('[data-current-year]').forEach((element) => {
+      element.textContent = new Date().getFullYear();
+    });
+
     const serviceConfig = {
       baseDomain: 'uni-hohenheim.de',
       webuiSubdomain: 'aidaho-copilot',

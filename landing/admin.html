@@ -104,12 +104,15 @@
     </div>
 
     <footer class="landing-footer">
-      <span>Liveansicht: Kennzahlen werden aus Open WebUI, n8n und PostgreSQL gesammelt.</span>
-      <span>Auto-Refresh alle 20 Sekunden</span>
+      <span class="copyright-badge">&copy; <span data-current-year>2026</span> Leonard Hegemann</span>
     </footer>
   </main>
 
   <script>
+    document.querySelectorAll('[data-current-year]').forEach((element) => {
+      element.textContent = new Date().getFullYear();
+    });
+
     const orgConfig = {
       aidaho: {
         name: 'AIDAHO Copilot'
