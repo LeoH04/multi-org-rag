@@ -11,7 +11,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 10Gi
@@ -25,7 +25,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 50Gi
@@ -39,7 +39,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 10Gi
@@ -53,7 +53,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 5Gi
@@ -67,7 +67,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 5Gi
@@ -81,7 +81,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 5Gi
@@ -95,7 +95,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 2Gi
@@ -109,7 +109,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 2Gi
@@ -123,7 +123,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 2Gi
@@ -137,7 +137,7 @@ metadata:
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: microk8s-hostpath
+  storageClassName: nfs-server
   resources:
     requests:
       storage: 10Gi
