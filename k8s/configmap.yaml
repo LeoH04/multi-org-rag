@@ -11,6 +11,7 @@ data:
   VLLM_MODEL_NAME: "gpt-oss-20b"
   VLLM_MAX_MODEL_LEN: "131072"
   VLLM_RERANK_MODEL: "BAAI/bge-reranker-v2-m3"
+  NVIDIA_MODEL_NAME: "openai/gpt-oss-120b"
   POSTGRES_USER: "postgres"
 
 ---
@@ -22,7 +23,8 @@ metadata:
 data:
   VECTOR_DB: "pgvector"
   ENABLE_OPENAI_API: "true"
-  OPENAI_API_BASE_URLS: "http://vllm-chat:8000/v1"
+  OPENAI_API_BASE_URLS: "https://integrate.api.nvidia.com/v1"
+  # OPENAI_API_BASE_URLS: "http://vllm-chat:8000/v1"
   DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
   RAG_EMBEDDING_ENGINE: ""
   RAG_EMBEDDING_MODEL: "intfloat/multilingual-e5-large-instruct"
@@ -39,9 +41,12 @@ data:
   RAG_HYBRID_BM25_WEIGHT: "0.4"
   ENABLE_RAG_HYBRID_SEARCH: "true"
   ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS: "false"
-  RAG_RERANKING_ENGINE: "external"
-  RAG_RERANKING_MODEL: "BAAI/bge-reranker-v2-m3"
-  RAG_EXTERNAL_RERANKER_URL: "http://vllm-reranker:8000/v1/rerank"
+  RAG_RERANKING_ENGINE: ""
+  RAG_RERANKING_MODEL: ""
+  RAG_EXTERNAL_RERANKER_URL: ""
+  # RAG_RERANKING_ENGINE: "external"
+  # RAG_RERANKING_MODEL: "BAAI/bge-reranker-v2-m3"
+  # RAG_EXTERNAL_RERANKER_URL: "http://vllm-reranker:8000/v1/rerank"
   RAG_EXTERNAL_RERANKER_TIMEOUT: "10"
   WEB_SEARCH_RESULT_COUNT: "5"
   CONTENT_EXTRACTION_ENGINE: "tika"

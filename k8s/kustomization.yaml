@@ -27,8 +27,8 @@ resources:
   # 4. Shared infrastructure
   - postgres.yaml
   - tika.yaml
-  - vllm-chat.yaml
-  - vllm-reranker.yaml
+  # - vllm-chat.yaml
+  # - vllm-reranker.yaml
 
   # 5. University Open WebUI
   - openwebui-aidaho.yaml

@@ -46,18 +46,27 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: multi-org-config
-                  key: VLLM_MODEL_NAME
+                  key: NVIDIA_MODEL_NAME
+            # - name: DEFAULT_MODELS
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: multi-org-config
+            #       key: VLLM_MODEL_NAME
             - name: OPENAI_API_KEYS
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
-                  key: VLLM_API_KEY
-            # Reranker API key
-            - name: RAG_EXTERNAL_RERANKER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: multi-org-secrets
-                  key: RERANK_API_KEY
+                  key: NVIDIA_API_KEY
+            # - name: OPENAI_API_KEYS
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: multi-org-secrets
+            #       key: VLLM_API_KEY
+            # - name: RAG_EXTERNAL_RERANKER_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: multi-org-secrets
+            #       key: RERANK_API_KEY
             # Tavily
             - name: TAVILY_API_KEY
               valueFrom:
