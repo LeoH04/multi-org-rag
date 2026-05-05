@@ -155,7 +155,7 @@ services:
   # AIDAHO Copilot — Open WebUI
   # ──────────────────────────────────────────────
   openwebui-aidaho:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
+    image: ghcr.io/open-webui/open-webui:v0.9.2
     restart: unless-stopped
     ports:
       - "8080:8080"
