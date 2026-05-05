@@ -74,7 +74,7 @@ spec:
               memory: "8Gi"
               cpu: "2"
             limits:
-              nvidia.com/gpu: "1"     # NVIDIA device plugin allocates GPU
+              nvidia.com/mig-3g.40gb: "1"  # Target an A100 40GB MIG slice
           startupProbe:
             exec:
               command:
@@ -97,9 +97,12 @@ spec:
         - name: cache
           persistentVolumeClaim:
             claimName: vllm-chat-cache
-      # Ensure scheduling on a GPU node
+      # Allow scheduling on GPU/MIG nodes if they are tainted.
       tolerations:
         - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: nvidia.com/mig-3g.40gb
           operator: Exists
           effect: NoSchedule
 
