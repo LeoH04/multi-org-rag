@@ -162,7 +162,7 @@ services:
   # GWF Wohnungsgenossenschaft eG — Open WebUI
   # ──────────────────────────────────────────────
   openwebui-gwf:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
+    image: ghcr.io/open-webui/open-webui:v0.9.2
     restart: unless-stopped
     # No direct port — accessed via nginx reverse proxy
     logging:
@@ -237,7 +237,7 @@ services:
   # Inge Graessle MdB Buero — Open WebUI
   # ──────────────────────────────────────────────
   openwebui-inge-graessle:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
+    image: ghcr.io/open-webui/open-webui:v0.9.2
     restart: unless-stopped
     # No direct port — accessed via nginx reverse proxy
     logging:
@@ -311,7 +311,7 @@ services:
   # Albert-Schweitzer-Kinderdorf — Open WebUI
   # ──────────────────────────────────────────────
   openwebui-ask:
-    image: ghcr.io/open-webui/open-webui:v0.8.12
+    image: ghcr.io/open-webui/open-webui:v0.9.2
     restart: unless-stopped
     # No direct port — accessed via nginx reverse proxy
     logging:
