@@ -27,6 +27,7 @@ resources:
   # 4. Shared infrastructure
   - postgres.yaml
   - tika.yaml
+  - ollama-embeddings.yaml
   - vllm-chat.yaml
   - vllm-reranker.yaml
 

@@ -45,6 +45,20 @@ spec:
       storage: 10Gi
 
 ---
+# Ollama embedding model cache
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-embeddings-data
+  namespace: multi-org-rag
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-server
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 # Open WebUI data — GWF
 apiVersion: v1
 kind: PersistentVolumeClaim

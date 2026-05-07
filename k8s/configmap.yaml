@@ -15,6 +15,7 @@ data:
   VLLM_MODEL_NAME: "Qwen3-30B-A3B-Instruct-2507-AWQ-4bit"
   VLLM_MAX_MODEL_LEN: "32768"
   VLLM_RERANK_MODEL: "BAAI/bge-reranker-v2-m3"
+  OLLAMA_EMBEDDING_MODEL: "bge-m3"
   POSTGRES_USER: "postgres"
 
 ---
@@ -28,8 +29,12 @@ data:
   ENABLE_OPENAI_API: "true"
   OPENAI_API_BASE_URLS: "http://vllm-chat:8000/v1"
   DEFAULT_MODEL_PARAMS: '{"function_calling":"native"}'
-  RAG_EMBEDDING_ENGINE: ""
-  RAG_EMBEDDING_MODEL: "intfloat/multilingual-e5-large-instruct"
+  RAG_EMBEDDING_ENGINE: "ollama"
+  RAG_EMBEDDING_MODEL: "bge-m3"
+  RAG_OLLAMA_BASE_URL: "http://ollama-embeddings:11434"
+  RAG_OLLAMA_API_KEY: ""
+  RAG_EMBEDDING_BATCH_SIZE: "16"
+  RAG_EMBEDDING_CONCURRENT_REQUESTS: "4"
   ENABLE_WEB_SEARCH: "true"
   WEB_SEARCH_ENGINE: "tavily"
   WEB_LOADER_ENGINE: "safe_web"

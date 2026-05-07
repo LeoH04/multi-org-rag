@@ -70,6 +70,49 @@ services:
     networks:
       - backend
 
+  # ──────────────────────────────────────────────
+  # Shared Ollama Embeddings API
+  # ──────────────────────────────────────────────
+  ollama-embeddings:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        OLLAMA_HOST=0.0.0.0:11434 ollama serve &
+        pid="$$!"
+        trap 'kill "$$pid"; wait "$$pid"' TERM INT
+        until OLLAMA_HOST=127.0.0.1:11434 ollama list >/dev/null 2>&1; do
+          sleep 2
+        done
+        OLLAMA_HOST=127.0.0.1:11434 ollama pull "$${OLLAMA_EMBEDDING_MODEL}"
+        wait "$$pid"
+    environment:
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
+      OLLAMA_KEEP_ALIVE: 24h
+      NVIDIA_VISIBLE_DEVICES: ${OLLAMA_VISIBLE_DEVICES}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids:
+                - "${OLLAMA_VISIBLE_DEVICES}"
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "OLLAMA_HOST=127.0.0.1:11434 ollama show \"$${OLLAMA_EMBEDDING_MODEL}\" >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ollama_embeddings_data:/root/.ollama
+    networks:
+      - backend
+
     # ──────────────────────────────────────────────
   # Shared vLLM Chat API (OpenAI-compatible)
   # ──────────────────────────────────────────────
@@ -187,6 +230,10 @@ services:
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      RAG_OLLAMA_BASE_URL: ${RAG_OLLAMA_BASE_URL}
+      RAG_OLLAMA_API_KEY: ${RAG_OLLAMA_API_KEY:-}
+      RAG_EMBEDDING_BATCH_SIZE: ${RAG_EMBEDDING_BATCH_SIZE:-16}
+      RAG_EMBEDDING_CONCURRENT_REQUESTS: ${RAG_EMBEDDING_CONCURRENT_REQUESTS:-4}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
       WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
@@ -261,6 +308,10 @@ services:
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      RAG_OLLAMA_BASE_URL: ${RAG_OLLAMA_BASE_URL}
+      RAG_OLLAMA_API_KEY: ${RAG_OLLAMA_API_KEY:-}
+      RAG_EMBEDDING_BATCH_SIZE: ${RAG_EMBEDDING_BATCH_SIZE:-16}
+      RAG_EMBEDDING_CONCURRENT_REQUESTS: ${RAG_EMBEDDING_CONCURRENT_REQUESTS:-4}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
       WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
@@ -335,6 +386,10 @@ services:
       DEFAULT_MODELS: ${VLLM_MODEL_NAME}
       RAG_EMBEDDING_ENGINE: ${RAG_EMBEDDING_ENGINE}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL}
+      RAG_OLLAMA_BASE_URL: ${RAG_OLLAMA_BASE_URL}
+      RAG_OLLAMA_API_KEY: ${RAG_OLLAMA_API_KEY:-}
+      RAG_EMBEDDING_BATCH_SIZE: ${RAG_EMBEDDING_BATCH_SIZE:-16}
+      RAG_EMBEDDING_CONCURRENT_REQUESTS: ${RAG_EMBEDDING_CONCURRENT_REQUESTS:-4}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH}
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE}
       WEB_LOADER_ENGINE: ${WEB_LOADER_ENGINE}
@@ -577,6 +632,7 @@ services:
 volumes:
   postgres_data:
   vllm_cache:
+  ollama_embeddings_data:
   openwebui_gwf_data:
   openwebui_inge_graessle_data:
   openwebui_ask_data:
