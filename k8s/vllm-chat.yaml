@@ -37,7 +37,7 @@ spec:
             - "--api-key"
             - "$(VLLM_API_KEY)"
             - "--gpu-memory-utilization"
-            - "0.90"
+            - "0.95"
             - "--max-model-len"
             - "$(VLLM_MAX_MODEL_LEN)"
             - "--enable-auto-tool-choice"
