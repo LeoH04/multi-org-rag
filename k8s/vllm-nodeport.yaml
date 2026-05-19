@@ -1,40 +1,22 @@
 # ============================================================
-# External access for vLLM from the Aidaho VM / Open WebUI
+# External access for vLLM embeddings from Open WebUI
 #
-# Configure the Open WebUI server on the Aidaho VM with:
-#   OPENAI_API_BASE_URLS=http://<kubernetes-node-ip>:31538/v1
-#   RAG_EXTERNAL_RERANKER_URL=http://<kubernetes-node-ip>:30424/v1/rerank
-#
-# Restrict these NodePorts to the Aidaho VM IP on the node firewall or
-# security group. vLLM is still protected by its API key.
+# Open WebUI URLs:
+#   OPENAI_API_BASE_URLS=http://144.41.15.40:30800/v1
+#   RAG_EXTERNAL_RERANKER_URL=http://144.41.15.40:30801/v1/rerank
+#   RAG_OPENAI_API_BASE_URL=http://144.41.15.40:30802/v1
 # ============================================================
 apiVersion: v1
 kind: Service
 metadata:
-  name: vllm-chat-nodeport
+  name: vllm-embeddings
   namespace: multi-org-rag
 spec:
   type: NodePort
   selector:
-    app: vllm-chat
+    app: vllm-embeddings
   ports:
     - name: http
       port: 8000
       targetPort: 8000
-      nodePort: 31538
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vllm-reranker-nodeport
-  namespace: multi-org-rag
-spec:
-  type: NodePort
-  selector:
-    app: vllm-reranker
-  ports:
-    - name: http
-      port: 8000
-      targetPort: 8000
-      nodePort: 30424
+      nodePort: 30802
