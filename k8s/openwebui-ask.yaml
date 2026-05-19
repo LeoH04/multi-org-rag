@@ -48,6 +48,11 @@ spec:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: VLLM_API_KEY
+            - name: RAG_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: RAG_OPENAI_API_KEY
             - name: RAG_EXTERNAL_RERANKER_API_KEY
               valueFrom:
                 secretKeyRef:

@@ -116,8 +116,10 @@ metadata:
   name: vllm-chat
   namespace: multi-org-rag
 spec:
+  type: NodePort
   selector:
     app: vllm-chat
   ports:
     - port: 8000
       targetPort: 8000
+      nodePort: 30800

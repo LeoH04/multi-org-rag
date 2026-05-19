@@ -1,71 +1,81 @@
 # ============================================================
-# vLLM Reranker — /v1/rerank API (GPU required)
+# vLLM Embeddings — /v1/embeddings API (GPU required)
 # ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vllm-reranker
+  name: vllm-embeddings
   namespace: multi-org-rag
   labels:
-    app: vllm-reranker
+    app: vllm-embeddings
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: vllm-reranker
+      app: vllm-embeddings
   template:
     metadata:
       labels:
-        app: vllm-reranker
+        app: vllm-embeddings
     spec:
       containers:
-        - name: vllm-reranker
+        - name: vllm-embeddings
           image: vllm/vllm-openai:latest
           ports:
             - containerPort: 8000
           args:
-            - "$(VLLM_RERANK_MODEL)"
+            - "$(VLLM_EMBEDDING_MODEL)"
+            - "--served-model-name"
+            - "$(VLLM_EMBEDDING_MODEL_NAME)"
             - "--runner"
             - "pooling"
+            - "--gpu-memory-utilization"
+            - "0.10"
             - "--host"
             - "0.0.0.0"
             - "--port"
             - "8000"
             - "--api-key"
-            - "$(RERANK_API_KEY)"
+            - "$(RAG_OPENAI_API_KEY)"
           env:
-            - name: VLLM_RERANK_MODEL
+            - name: VLLM_EMBEDDING_MODEL
               valueFrom:
                 configMapKeyRef:
                   name: multi-org-config
-                  key: VLLM_RERANK_MODEL
-            - name: RERANK_API_KEY
+                  key: VLLM_EMBEDDING_MODEL
+            - name: VLLM_EMBEDDING_MODEL_NAME
               valueFrom:
-                secretKeyRef:
-                  name: multi-org-secrets
-                  key: RERANK_API_KEY
+                configMapKeyRef:
+                  name: multi-org-config
+                  key: VLLM_EMBEDDING_MODEL_NAME
             - name: HF_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: multi-org-secrets
                   key: HF_TOKEN
+            - name: RAG_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: multi-org-secrets
+                  key: RAG_OPENAI_API_KEY
           volumeMounts:
             - name: cache
               mountPath: /root/.cache/huggingface
           resources:
             requests:
-              memory: "4Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "500m"
             limits:
+              memory: "8Gi"
               nvidia.com/gpu: "1"
           startupProbe:
             exec:
               command:
                 - sh
                 - -c
-                - 'curl -sf -H "Authorization: Bearer $RERANK_API_KEY" http://localhost:8000/v1/models >/dev/null'
+                - 'curl -sf -H "Authorization: Bearer $RAG_OPENAI_API_KEY" http://localhost:8000/v1/models >/dev/null'
             initialDelaySeconds: 20
             periodSeconds: 15
             timeoutSeconds: 5
@@ -75,13 +85,13 @@ spec:
               command:
                 - sh
                 - -c
-                - 'curl -sf -H "Authorization: Bearer $RERANK_API_KEY" http://localhost:8000/v1/models >/dev/null'
+                - 'curl -sf -H "Authorization: Bearer $RAG_OPENAI_API_KEY" http://localhost:8000/v1/models >/dev/null'
             periodSeconds: 30
             timeoutSeconds: 5
       volumes:
         - name: cache
           persistentVolumeClaim:
-            claimName: vllm-reranker-cache
+            claimName: vllm-embeddings-cache
       tolerations:
         - key: nvidia.com/gpu
           operator: Exists
@@ -91,13 +101,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: vllm-reranker
+  name: vllm-embeddings
   namespace: multi-org-rag
 spec:
   type: NodePort
   selector:
-    app: vllm-reranker
+    app: vllm-embeddings
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30801
+      nodePort: 30802

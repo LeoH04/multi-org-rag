@@ -31,11 +31,11 @@ spec:
       storage: 50Gi
 
 ---
-# vLLM reranker model cache (HuggingFace download)
+# vLLM embedding model cache (HuggingFace download)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: vllm-reranker-cache
+  name: vllm-embeddings-cache
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
@@ -45,11 +45,11 @@ spec:
       storage: 10Gi
 
 ---
-# Ollama embedding model cache
+# vLLM reranker model cache (HuggingFace download)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ollama-embeddings-data
+  name: vllm-reranker-cache
   namespace: multi-org-rag
 spec:
   accessModes: [ReadWriteOnce]
